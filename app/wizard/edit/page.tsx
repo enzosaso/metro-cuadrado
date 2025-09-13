@@ -5,7 +5,7 @@ import { useWizard } from '@/wizard/state'
 
 export default function EditStep() {
   const { state, dispatch } = useWizard()
-  console.log(state)
+
   const canNext = state.draft.selectedItem.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
 
   const t = totals(state.draft.selectedItem, state.draft.lines, state.draft.markupPercent)
