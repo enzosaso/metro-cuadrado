@@ -8,7 +8,7 @@ export default function SelectStep() {
   const { state, dispatch } = useWizard()
   const { data: items, loading, error } = useItems()
   const [q, setQ] = useState('')
-  console.log(state)
+
   const filtered = useMemo(() => {
     if (!items) return []
     const s = q.trim().toLowerCase()
