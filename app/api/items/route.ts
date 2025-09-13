@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { fetchCsv } from '@/lib/csv'
-import { ITEMS as FALLBACK } from '@/lib/mock-items'
 import type { Item } from '@/types'
 
 export const runtime = 'nodejs'
@@ -9,7 +8,7 @@ export const dynamic = 'force-dynamic'
 export async function GET() {
   try {
     const url = process.env.SHEETS_ITEMS_CSV_URL
-    if (!url) return NextResponse.json(FALLBACK)
+    if (!url) return NextResponse.json([])
     const rows = await fetchCsv<Item>(url)
 
     // Mapear columnas del Sheet a Item
@@ -26,6 +25,6 @@ export async function GET() {
     return NextResponse.json(items, { headers: { 'Cache-Control': 's-maxage=60' } })
   } catch (e) {
     console.error(e)
-    return NextResponse.json(FALLBACK, { status: 200 })
+    return NextResponse.json([], { status: 200 })
   }
 }

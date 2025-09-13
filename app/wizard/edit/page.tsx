@@ -21,8 +21,8 @@ export default function EditStep() {
               <th className='py-2 pr-2'>Ítem</th>
               <th className='py-2 pr-2 w-24'>Unidad</th>
               <th className='py-2 pr-2 w-28'>Cantidad</th>
-              <th className='py-2 pr-2 w-28'>PU Mat (override)</th>
-              <th className='py-2 pr-2 w-28'>PU MO (override)</th>
+              <th className='py-2 pr-2 w-28'>Precio Unitario Materiales</th>
+              <th className='py-2 pr-2 w-28'>Precio Unitario Mano de Obra</th>
               <th className='py-2 pr-2 w-32 text-right'>Subtotal</th>
             </tr>
           </thead>
@@ -38,7 +38,7 @@ export default function EditStep() {
                       Cap. {it.code} · {it.chapter}
                     </div>
                   </td>
-                  <td className='py-2 pr-2'>{it.unit}</td>
+                  <td className='py-2 pr-2'>{it.unit.toUpperCase()}</td>
                   <td className='py-2 pr-2'>
                     <input
                       inputMode='decimal'
@@ -48,36 +48,8 @@ export default function EditStep() {
                       className='w-24 rounded-xl border px-2 py-1'
                     />
                   </td>
-                  <td className='py-2 pr-2'>
-                    <input
-                      inputMode='decimal'
-                      value={line.puMaterialsOverride ?? ''}
-                      onChange={e =>
-                        dispatch({
-                          type: 'SET_LINE',
-                          item: it,
-                          patch: e.target.value ? { puMaterialsOverride: e.target.value } : {}
-                        })
-                      }
-                      placeholder={`${it.pu_materials}`}
-                      className='w-28 rounded-xl border px-2 py-1'
-                    />
-                  </td>
-                  <td className='py-2 pr-2'>
-                    <input
-                      inputMode='decimal'
-                      value={line.puLaborOverride ?? ''}
-                      onChange={e =>
-                        dispatch({
-                          type: 'SET_LINE',
-                          item: it,
-                          patch: e.target.value ? { puLaborOverride: e.target.value } : {}
-                        })
-                      }
-                      placeholder={`${it.pu_labor}`}
-                      className='w-28 rounded-xl border px-2 py-1'
-                    />
-                  </td>
+                  <td className='py-2 pr-2'>{fmt(it.pu_materials)}</td>
+                  <td className='py-2 pr-2'>{fmt(it.pu_labor)}</td>
                   <td className='py-2 pr-2 text-right'>{fmt(subtotal)}</td>
                 </tr>
               )
@@ -98,7 +70,7 @@ export default function EditStep() {
             Subtotal: <strong>{fmt(t.subtotal)}</strong>
           </div>
           <div className='flex items-center gap-2'>
-            <span>Markup %</span>
+            <span>Ajuste de obra</span>
             <input
               inputMode='decimal'
               value={state.draft.markupPercent}
