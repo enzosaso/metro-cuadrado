@@ -1,6 +1,6 @@
 'use client'
 import { createContext, useContext, useEffect, useReducer } from 'react'
-import type { BudgetDraft, LineDraft } from '@/types'
+import type { BudgetDraft, LineDraft, Item } from '@/types'
 
 type Step = 'select' | 'edit' | 'review'
 
@@ -11,14 +11,14 @@ interface WizardState {
 
 type Action =
   | { type: 'SET_STEP'; step: Step }
-  | { type: 'TOGGLE_SELECT'; itemId: string }
-  | { type: 'SET_LINE'; itemId: string; patch: Partial<LineDraft> }
+  | { type: 'TOGGLE_SELECT'; item: Item }
+  | { type: 'SET_LINE'; item: Item; patch: Partial<LineDraft> }
   | { type: 'SET_MARKUP'; value: string }
   | { type: 'RESET' }
 
 const initial: WizardState = {
   step: 'select',
-  draft: { selectedItemIds: [], lines: {}, markupPercent: '0.10' }
+  draft: { selectedItem: [], lines: {}, markupPercent: '0.10' }
 }
 
 const STORAGE_KEY = 'mc_wizard_v1'
@@ -28,20 +28,20 @@ function reducer(state: WizardState, action: Action): WizardState {
     case 'SET_STEP':
       return { ...state, step: action.step }
     case 'TOGGLE_SELECT': {
-      const exists = state.draft.selectedItemIds.includes(action.itemId)
-      const selectedItemIds = exists
-        ? state.draft.selectedItemIds.filter(id => id !== action.itemId)
-        : [...state.draft.selectedItemIds, action.itemId]
+      const exists = state.draft.selectedItem.some(i => i.id === action.item.id)
+      const selectedItem = exists
+        ? state.draft.selectedItem.filter(i => i.id !== action.item.id)
+        : [...state.draft.selectedItem, action.item]
       const lines = { ...state.draft.lines }
-      if (!exists && !lines[action.itemId]) lines[action.itemId] = { itemId: action.itemId, quantity: '' }
-      if (exists) delete lines[action.itemId]
-      return { ...state, draft: { ...state.draft, selectedItemIds, lines } }
+      if (!exists && !lines[action.item.id]) lines[action.item.id] = { item: action.item, quantity: '' }
+      if (exists) delete lines[action.item.id]
+      return { ...state, draft: { ...state.draft, selectedItem, lines } }
     }
     case 'SET_LINE': {
-      const current = state.draft.lines[action.itemId] ?? { itemId: action.itemId, quantity: '' }
+      const current = state.draft.lines[action.item.id] ?? { item: action.item, quantity: '' }
       return {
         ...state,
-        draft: { ...state.draft, lines: { ...state.draft.lines, [action.itemId]: { ...current, ...action.patch } } }
+        draft: { ...state.draft, lines: { ...state.draft.lines, [action.item.id]: { ...current, ...action.patch } } }
       }
     }
     case 'SET_MARKUP':

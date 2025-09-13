@@ -1,20 +1,14 @@
 'use client'
 import Link from 'next/link'
-import { useMemo } from 'react'
-import { ITEMS } from '@/lib/mock-items'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
 
 export default function EditStep() {
   const { state, dispatch } = useWizard()
-  const items = useMemo(
-    () => ITEMS.filter(i => state.draft.selectedItemIds.includes(i.id)),
-    [state.draft.selectedItemIds]
-  )
+  console.log(state)
+  const canNext = state.draft.selectedItem.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
 
-  const canNext = items.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
-
-  const t = totals(items, state.draft.lines, state.draft.markupPercent)
+  const t = totals(state.draft.selectedItem, state.draft.lines, state.draft.markupPercent)
 
   return (
     <div>
@@ -33,7 +27,7 @@ export default function EditStep() {
             </tr>
           </thead>
           <tbody>
-            {items.map(it => {
+            {state.draft.selectedItem.map(it => {
               const line = state.draft.lines[it.id]!
               const subtotal = lineSubtotal(it, line)
               return (
@@ -49,7 +43,7 @@ export default function EditStep() {
                     <input
                       inputMode='decimal'
                       value={line.quantity}
-                      onChange={e => dispatch({ type: 'SET_LINE', itemId: it.id, patch: { quantity: e.target.value } })}
+                      onChange={e => dispatch({ type: 'SET_LINE', item: it, patch: { quantity: e.target.value } })}
                       placeholder='0'
                       className='w-24 rounded-xl border px-2 py-1'
                     />
@@ -61,7 +55,7 @@ export default function EditStep() {
                       onChange={e =>
                         dispatch({
                           type: 'SET_LINE',
-                          itemId: it.id,
+                          item: it,
                           patch: e.target.value ? { puMaterialsOverride: e.target.value } : {}
                         })
                       }
@@ -76,8 +70,8 @@ export default function EditStep() {
                       onChange={e =>
                         dispatch({
                           type: 'SET_LINE',
-                          itemId: it.id,
-                          patch: e.target.value ? { puMaterialsOverride: e.target.value } : {}
+                          item: it,
+                          patch: e.target.value ? { puLaborOverride: e.target.value } : {}
                         })
                       }
                       placeholder={`${it.pu_labor}`}

@@ -8,7 +8,7 @@ export default function SelectStep() {
   const { state, dispatch } = useWizard()
   const { data: items, loading, error } = useItems()
   const [q, setQ] = useState('')
-
+  console.log(state)
   const filtered = useMemo(() => {
     if (!items) return []
     const s = q.trim().toLowerCase()
@@ -18,7 +18,7 @@ export default function SelectStep() {
     )
   }, [q, items])
 
-  const canNext = state.draft.selectedItemIds.length > 0
+  const canNext = state.draft.selectedItem.length > 0
 
   return (
     <div>
@@ -39,14 +39,14 @@ export default function SelectStep() {
       {!loading && !error && (
         <ul className='mt-4 grid grid-cols-1 gap-2 md:grid-cols-2'>
           {filtered.map(item => {
-            const checked = state.draft.selectedItemIds.includes(item.id)
+            const checked = state.draft.selectedItem.some(i => i.id === item.id)
             return (
               <li key={item.id} className='rounded-xl border p-3'>
                 <label className='flex items-start gap-3 cursor-pointer'>
                   <input
                     type='checkbox'
                     checked={checked}
-                    onChange={() => dispatch({ type: 'TOGGLE_SELECT', itemId: item.id })}
+                    onChange={() => dispatch({ type: 'TOGGLE_SELECT', item })}
                     className='mt-1'
                   />
                   <div className='flex-1'>

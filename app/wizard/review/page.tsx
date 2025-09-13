@@ -1,16 +1,12 @@
 'use client'
 import Link from 'next/link'
-import { useMemo, useState } from 'react'
-import { ITEMS } from '@/lib/mock-items'
+import { useState } from 'react'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
 
 export default function ReviewStep() {
   const { state } = useWizard()
-  const items = useMemo(
-    () => ITEMS.filter(i => state.draft.selectedItemIds.includes(i.id)),
-    [state.draft.selectedItemIds]
-  )
+  const items = state.draft.selectedItem
   const t = totals(items, state.draft.lines, state.draft.markupPercent)
   const [loading, setLoading] = useState(false)
 

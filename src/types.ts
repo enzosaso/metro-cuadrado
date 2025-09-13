@@ -11,14 +11,14 @@ export interface Item {
 }
 
 export interface LineDraft {
-  itemId: string
+  item: Item
   quantity: string // decimal como string
   puMaterialsOverride?: string
   puLaborOverride?: string
 }
 
 export interface BudgetDraft {
-  selectedItemIds: string[]
+  selectedItem: Item[]
   lines: Record<string, LineDraft> // key = itemId
   markupPercent: string // "0.10" (10%)
 }
