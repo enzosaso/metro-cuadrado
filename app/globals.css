@@ -1,26 +1,42 @@
-@import "tailwindcss";
+@import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* Tokens de diseño con Tailwind v4 */
+@theme {
+  --color-background: hsl(0 0% 100%);
+  --color-foreground: hsl(220 13% 14%);
+  --color-muted: hsl(210 40% 96.1%);
+  --color-muted-foreground: hsl(215 16% 46.9%);
+  --color-border: hsl(214 32% 91%);
+  --color-input: hsl(214 32% 91%);
+  --color-ring: hsl(161 94% 30%);
+  /* Branding Metro Cuadrado */
+  --color-primary: hsl(161 94% 30%);
+  --color-primary-foreground: hsl(0 0% 100%);
+
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+
+  /* container 2xl */
+  --container-2xl: 1280px;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* Dark mode por clase .dark (opcional) */
+.dark {
+  --color-background: hsl(222 47% 5%);
+  --color-foreground: hsl(210 40% 98%);
+  --color-muted: hsl(217 33% 17%);
+  --color-muted-foreground: hsl(215 20% 65%);
+  --color-border: hsl(217 33% 17%);
+  --color-input: hsl(217 33% 17%);
+  --color-ring: hsl(161 94% 30%);
+  --color-primary: hsl(161 94% 30%);
+  --color-primary-foreground: hsl(0 0% 100%);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* Base */
+@layer base {
+  html,
+  body {
+    @apply bg-background text-foreground;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
 }
