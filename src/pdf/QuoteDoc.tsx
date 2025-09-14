@@ -32,7 +32,7 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
     <Document>
       <Page size='A4' style={styles.page}>
         <View style={styles.header}>
-          <Text style={styles.h1}>Metro Cuadrado — Presupuesto</Text>
+          <Text style={styles.h1}>Presupuesto</Text>
           <Text style={styles.meta}>
             {title} · {new Date().toLocaleDateString('es-AR')}
           </Text>
@@ -51,7 +51,7 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
             const sub = lineSubtotal(it, line)
             return (
               <View key={it.id} style={styles.tr}>
-                <Text style={[styles.td, { flexBasis: '52%' }]}>{it.name}</Text>
+                <Text style={[styles.td, { flexBasis: '52%' }]}>{it.chapter}</Text>
                 <Text style={[styles.td, { flexBasis: '12%' }]}>{line.quantity || '0'}</Text>
                 <Text style={[styles.td, { flexBasis: '12%' }]}>{it.unit}</Text>
                 <Text style={[styles.td, { flexBasis: '24%' }, styles.right]}>{fmt(sub)}</Text>
@@ -74,7 +74,7 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
             <Text>{fmt(t.subtotal)}</Text>
           </View>
           <View style={styles.row}>
-            <Text>Markup</Text>
+            <Text>Ajuste de obra</Text>
             <Text>{(t.markupPercent * 100).toFixed(0)}%</Text>
           </View>
           <View style={[styles.row, { marginTop: 6 }]}>

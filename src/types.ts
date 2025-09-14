@@ -18,7 +18,7 @@ export interface LineDraft {
 }
 
 export interface BudgetDraft {
-  selectedItem: Item[]
+  selectedItems: Item[]
   lines: Record<string, LineDraft> // key = itemId
   markupPercent: string // "0.10" (10%)
 }

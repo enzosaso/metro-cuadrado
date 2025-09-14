@@ -18,7 +18,7 @@ type Action =
 
 const initial: WizardState = {
   step: 'select',
-  draft: { selectedItem: [], lines: {}, markupPercent: '0.10' }
+  draft: { selectedItems: [], lines: {}, markupPercent: '0.10' }
 }
 
 const STORAGE_KEY = 'mc_wizard_v1'
@@ -28,14 +28,14 @@ function reducer(state: WizardState, action: Action): WizardState {
     case 'SET_STEP':
       return { ...state, step: action.step }
     case 'TOGGLE_SELECT': {
-      const exists = state.draft.selectedItem.some(i => i.id === action.item.id)
-      const selectedItem = exists
-        ? state.draft.selectedItem.filter(i => i.id !== action.item.id)
-        : [...state.draft.selectedItem, action.item]
+      const exists = state.draft.selectedItems.some(i => i.id === action.item.id)
+      const selectedItems = exists
+        ? state.draft.selectedItems.filter(i => i.id !== action.item.id)
+        : [...state.draft.selectedItems, action.item]
       const lines = { ...state.draft.lines }
       if (!exists && !lines[action.item.id]) lines[action.item.id] = { item: action.item, quantity: '' }
       if (exists) delete lines[action.item.id]
-      return { ...state, draft: { ...state.draft, selectedItem, lines } }
+      return { ...state, draft: { ...state.draft, selectedItems, lines } }
     }
     case 'SET_LINE': {
       const current = state.draft.lines[action.item.id] ?? { item: action.item, quantity: '' }

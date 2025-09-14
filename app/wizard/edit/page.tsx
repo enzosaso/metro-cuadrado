@@ -6,9 +6,9 @@ import { useWizard } from '@/wizard/state'
 export default function EditStep() {
   const { state, dispatch } = useWizard()
 
-  const canNext = state.draft.selectedItem.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
+  const canNext = state.draft.selectedItems.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
 
-  const t = totals(state.draft.selectedItem, state.draft.lines, state.draft.markupPercent)
+  const t = totals(state.draft.selectedItems, state.draft.lines, state.draft.markupPercent)
 
   return (
     <div>
@@ -27,16 +27,14 @@ export default function EditStep() {
             </tr>
           </thead>
           <tbody>
-            {state.draft.selectedItem.map(it => {
+            {state.draft.selectedItems.map(it => {
               const line = state.draft.lines[it.id]!
               const subtotal = lineSubtotal(it, line)
               return (
                 <tr key={it.id} className='border-b'>
                   <td className='py-2 pr-2'>
                     <div className='font-medium'>{it.name}</div>
-                    <div className='text-xs text-muted-foreground'>
-                      Cap. {it.code} · {it.chapter}
-                    </div>
+                    <div className='text-xs text-muted-foreground'>{it.chapter}</div>
                   </td>
                   <td className='py-2 pr-2'>{it.unit.toUpperCase()}</td>
                   <td className='py-2 pr-2'>
@@ -48,8 +46,8 @@ export default function EditStep() {
                       className='w-24 rounded-xl border px-2 py-1'
                     />
                   </td>
-                  <td className='py-2 pr-2'>{fmt(it.pu_materials)}</td>
-                  <td className='py-2 pr-2'>{fmt(it.pu_labor)}</td>
+                  <td className='py-2 pr-2'>{!it.pu_materials ? '-' : fmt(it.pu_materials)}</td>
+                  <td className='py-2 pr-2'>{!it.pu_labor ? '-' : fmt(it.pu_labor)}</td>
                   <td className='py-2 pr-2 text-right'>{fmt(subtotal)}</td>
                 </tr>
               )

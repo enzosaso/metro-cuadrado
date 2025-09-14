@@ -6,10 +6,10 @@ import { useWizard } from '@/wizard/state'
 
 export default function ReviewStep() {
   const { state } = useWizard()
-  const items = state.draft.selectedItem
+  const items = state.draft.selectedItems
   const t = totals(items, state.draft.lines, state.draft.markupPercent)
   const [loading, setLoading] = useState(false)
-
+  console.log(state)
   const onPrint = async () => {
     try {
       setLoading(true)
@@ -53,7 +53,7 @@ export default function ReviewStep() {
               const sub = lineSubtotal(it, line)
               return (
                 <tr key={it.id} className='border-b'>
-                  <td className='py-2 px-3'>{it.name}</td>
+                  <td className='py-2 px-3'>{it.chapter}</td>
                   <td className='py-2 px-3'>{line.quantity || '0'}</td>
                   <td className='py-2 px-3'>{it.unit}</td>
                   <td className='py-2 px-3 text-right'>{fmt(sub)}</td>

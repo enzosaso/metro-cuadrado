@@ -1,7 +1,6 @@
 import { NextRequest } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import QuoteDoc from '@/pdf/QuoteDoc'
-import { ITEMS } from '@/lib/mock-items'
 import type { LineDraft } from '@/types'
 
 export const runtime = 'nodejs' // fuerza Node (no Edge)
@@ -16,7 +15,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Filtrar solo ítems presentes
-    const selectedItems = ITEMS.filter(i => Boolean(lines[i.id]))
+    const selectedItems = Object.values(lines).map(l => l.item)
 
     const pdf = await renderToBuffer(
       QuoteDoc({ title: title || 'Presupuesto', items: selectedItems, lines, markupPercent })
