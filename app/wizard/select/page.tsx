@@ -12,16 +12,12 @@ export default function SelectStep() {
   const [q, setQ] = useState('')
   const [openParents, setOpenParents] = useState<Record<number, boolean>>({})
 
-  // Filtro por búsqueda (aplica a padres e hijos; si un hijo matchea, su padre se muestra con ese hijo)
   const { parents, childrenByParent } = useMemo(() => {
     const all = items ?? []
     const s = q.trim().toLowerCase()
-
-    // separar padres e hijos
     const parents = all.filter(i => i.code % 100 === 0)
     const children = all.filter(i => i.code % 100 !== 0)
 
-    // indexar hijos por code base (x00)
     const group: Record<number, Item[]> = {}
     for (const child of children) {
       const base = Math.floor(child.code / 100) * 100
@@ -29,7 +25,6 @@ export default function SelectStep() {
       group[base].push(child)
     }
 
-    // aplicar búsqueda: si hay query, filtramos por name/chapter/code
     if (s) {
       const matches = (it: Item) =>
         it.name.toLowerCase().includes(s) || it.chapter.toLowerCase().includes(s) || String(it.code).includes(s)
@@ -46,10 +41,7 @@ export default function SelectStep() {
       }
     }
 
-    // sin búsqueda: devolver todo, hijos ordenados
-    for (const k of Object.keys(group)) {
-      group?.[+k]?.sort((a, b) => a.code - b.code)
-    }
+    for (const k of Object.keys(group)) group?.[+k]?.sort((a, b) => a.code - b.code)
     return {
       parents: parents.sort((a, b) => a.code - b.code),
       childrenByParent: group
@@ -57,9 +49,7 @@ export default function SelectStep() {
   }, [items, q])
 
   const canNext = state.draft.selectedItems.length > 0
-
   const toggleOpen = (baseCode: number) => setOpenParents(prev => ({ ...prev, [baseCode]: !prev[baseCode] }))
-
   const isSelected = (id: string) => state.draft.selectedItems.some(i => i.id === id)
 
   return (
@@ -75,6 +65,56 @@ export default function SelectStep() {
         />
       </div>
 
+      {/* Panel de seleccionados */}
+      {state.draft.selectedItems.length > 0 && (
+        <aside className='mt-4 rounded-2xl border p-3'>
+          <div className='flex items-center justify-between'>
+            <div className='text-sm'>
+              Seleccionados: <strong>{state.draft.selectedItems.length}</strong>
+            </div>
+            <Link href='/wizard/edit' className='rounded-xl bg-primary px-3 py-1.5 text-primary-foreground text-sm'>
+              Continuar a Cantidades
+            </Link>
+          </div>
+          <ul className='mt-3 grid gap-2 md:grid-cols-2'>
+            {state.draft.selectedItems.map(sel => (
+              <li key={sel.id} className='flex items-start justify-between rounded-xl border px-3 py-2'>
+                <div className='mr-3'>
+                  <div className='font-medium text-sm'>{sel.name}</div>
+                  <div className='text-xs text-muted-foreground'>
+                    {sel.chapter}
+                    {sel.unit ? ` · ${sel.unit.toUpperCase()}` : ''}
+                  </div>
+                  {(sel.pu_materials || sel.pu_labor) && (
+                    <div className='text-[11px] mt-1'>
+                      {sel.pu_materials ? (
+                        <>
+                          Mat: <strong>{fmt(Number(sel.pu_materials))}</strong>
+                        </>
+                      ) : null}
+                      {sel.pu_materials && sel.pu_labor ? ' · ' : null}
+                      {sel.pu_labor ? (
+                        <>
+                          MO: <strong>{fmt(Number(sel.pu_labor))}</strong>
+                        </>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+                <button
+                  type='button'
+                  onClick={() => dispatch({ type: 'TOGGLE_SELECT', item: sel })}
+                  className='text-xs rounded-lg border px-2 py-1 hover:opacity-80 cursor-pointer bg-red-500 text-white'
+                  title='Quitar'
+                >
+                  Quitar
+                </button>
+              </li>
+            ))}
+          </ul>
+        </aside>
+      )}
+
       {loading && <div className='mt-4 text-sm text-muted-foreground'>Cargando ítems…</div>}
       {error && <div className='mt-4 text-sm text-red-600'>Error cargando ítems.</div>}
 
@@ -82,28 +122,25 @@ export default function SelectStep() {
         <div className='mt-4 space-y-3'>
           {parents.map(parent => {
             const kids = childrenByParent[parent.code] ?? []
-            const open = openParents[parent.code] ?? Boolean(q) // si hay búsqueda, abrir por defecto
-            const hasKids = kids.length > 0
+            const open = openParents[parent.code] ?? Boolean(q)
+            if (!kids.length) return null
 
             return (
               <div key={parent.id} className='rounded-2xl border'>
-                {/* Header del capítulo (no seleccionable) */}
                 <button
                   type='button'
-                  onClick={() => hasKids && toggleOpen(parent.code)}
+                  onClick={() => toggleOpen(parent.code)}
                   className='flex w-full items-center justify-between px-4 py-3 cursor-pointer'
                   aria-expanded={open}
                 >
-                  <div className='flex items-center gap-3'>
-                    <div className='text-left'>
-                      <div className='font-semibold text-primary'>{parent.chapter || parent.name}</div>
-                    </div>
+                  <div className='text-left'>
+                    <div className='font-semibold text-primary'>{parent.chapter || parent.name}</div>
+                    <div className='text-xs text-muted-foreground'>Capítulo · no seleccionable</div>
                   </div>
                   <span className='text-sm'>{open ? '▾' : '▸'}</span>
                 </button>
 
-                {/* Lista de hijos seleccionables */}
-                {open && hasKids && (
+                {open && (
                   <ul className='border-t'>
                     {kids.map(item => {
                       const checked = isSelected(item.id)
@@ -117,32 +154,29 @@ export default function SelectStep() {
                           />
                           <div className='flex-1'>
                             <div className='font-medium'>{item.name}</div>
-                            <div className='text-md font-normal text-shadow-gray-800'>
+                            <div className='text-md font-normal'>
                               {item.chapter}
                               {item.unit ? ` · Unidad: ${item.unit.toUpperCase()}` : ''}
                             </div>
-                            <div className='text-xs mt-1'>
-                              {item.pu_materials ? (
-                                <>
-                                  PU Materiales:{' '}
-                                  <strong className={item.pu_materials ? 'mr-2' : ''}>
-                                    {fmt(Number(item.pu_materials))}
-                                  </strong>
-                                </>
-                              ) : null}
-                              {item.pu_labor ? (
-                                <>
-                                  PU Mano de Obra: <strong>{fmt(Number(item.pu_labor))}</strong>
-                                </>
-                              ) : null}
-                            </div>
+                            {(item.pu_materials || item.pu_labor) && (
+                              <div className='text-xs mt-1'>
+                                {item.pu_materials ? (
+                                  <>
+                                    PU Mat: <strong>{fmt(Number(item.pu_materials))}</strong>
+                                  </>
+                                ) : null}
+                                {item.pu_materials && item.pu_labor ? ' · ' : null}
+                                {item.pu_labor ? (
+                                  <>
+                                    PU MO: <strong>{fmt(Number(item.pu_labor))}</strong>
+                                  </>
+                                ) : null}
+                              </div>
+                            )}
                           </div>
                         </li>
                       )
                     })}
-                    {kids.length === 0 && (
-                      <li className='px-4 py-3 text-sm text-muted-foreground'>Sin ítems en este capítulo.</li>
-                    )}
                   </ul>
                 )}
               </div>
