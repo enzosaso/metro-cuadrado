@@ -48,11 +48,11 @@ export default function ReviewStep() {
             </tr>
           </thead>
           <tbody>
-            {items.map(it => {
+            {items.map((it, index) => {
               const line = state.draft.lines[it.id]!
               const sub = lineSubtotal(it, line)
               return (
-                <tr key={it.id} className='border-b'>
+                <tr key={it.id} className={index === items.length - 1 ? '' : 'border-b'}>
                   <td className='py-2 px-3'>{it.chapter}</td>
                   <td className='py-2 px-3'>{line.quantity || '0'}</td>
                   <td className='py-2 px-3'>{it.unit}</td>
@@ -76,7 +76,7 @@ export default function ReviewStep() {
             Subtotal: <strong>{fmt(t.subtotal)}</strong>
           </div>
           <div>
-            Markup: <strong>{(t.markupPercent * 100).toFixed(0)}%</strong>
+            Ajuste de obra: <strong>{(t.markupPercent * 100).toFixed(0)}%</strong>
           </div>
           <div className='ml-auto text-lg'>
             Total: <strong>{fmt(t.total)}</strong>
@@ -91,7 +91,7 @@ export default function ReviewStep() {
         <button
           onClick={onPrint}
           disabled={loading}
-          className='rounded-xl bg-primary px-4 py-2 text-primary-foreground disabled:opacity-50'
+          className='rounded-xl bg-primary text-white px-4 py-2 disabled:opacity-50 cursor-pointer'
         >
           {loading ? 'Generando…' : 'Imprimir / PDF'}
         </button>

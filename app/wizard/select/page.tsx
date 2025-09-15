@@ -72,7 +72,7 @@ export default function SelectStep() {
             <div className='text-sm'>
               Seleccionados: <strong>{state.draft.selectedItems.length}</strong>
             </div>
-            <Link href='/wizard/edit' className='rounded-xl bg-primary px-3 py-1.5 text-primary-foreground text-sm'>
+            <Link href='/wizard/edit' className='rounded-xl bg-primary px-3 py-1.5 text-white text-sm'>
               Continuar a Cantidades
             </Link>
           </div>
@@ -104,7 +104,7 @@ export default function SelectStep() {
                 <button
                   type='button'
                   onClick={() => dispatch({ type: 'TOGGLE_SELECT', item: sel })}
-                  className='text-xs rounded-lg border px-2 py-1 hover:opacity-80 cursor-pointer bg-red-500 text-white'
+                  className='text-xs rounded-lg border border-secondary px-2 py-1 hover:opacity-80 cursor-pointer bg-secondary text-gray-800'
                   title='Quitar'
                 >
                   Quitar
@@ -135,7 +135,6 @@ export default function SelectStep() {
                 >
                   <div className='text-left'>
                     <div className='font-semibold text-primary'>{parent.chapter || parent.name}</div>
-                    <div className='text-xs text-muted-foreground'>Capítulo · no seleccionable</div>
                   </div>
                   <span className='text-sm'>{open ? '▾' : '▸'}</span>
                 </button>
@@ -192,7 +191,7 @@ export default function SelectStep() {
         <Link
           href={canNext ? '/wizard/edit' : '#'}
           className={`rounded-xl px-4 py-2 ${
-            canNext ? 'bg-primary text-primary-foreground' : 'border text-muted-foreground pointer-events-none'
+            canNext ? 'bg-primary text-white' : 'border text-muted-foreground pointer-events-none'
           }`}
         >
           Continuar

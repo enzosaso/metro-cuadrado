@@ -24,7 +24,7 @@ export default function EditStep() {
             return (
               <div key={it.id} className='rounded-xl border p-4 shadow-sm'>
                 <div className='font-medium'>{it.name}</div>
-                <div className='text-xs text-muted-foreground mb-2'>{it.chapter}</div>
+                <div className='text-sm font-semibold text-primary mb-2'>{it.chapter}</div>
 
                 <div className='flex flex-wrap gap-2 text-sm'>
                   <span className='px-2 py-1 rounded bg-muted text-xs'>Unidad: {it.unit.toUpperCase()}</span>
@@ -131,7 +131,9 @@ export default function EditStep() {
         <Link
           href={canNext ? '/wizard/review' : '#'}
           className={`rounded-xl px-4 py-2 ${
-            canNext ? 'bg-primary text-primary-foreground' : 'border text-muted-foreground pointer-events-none'
+            canNext
+              ? 'bg-primary text-primary-foreground text-white'
+              : 'border text-muted-foreground pointer-events-none'
           }`}
         >
           Continuar

@@ -10,7 +10,7 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
             <Link href='/' className='font-semibold'>
               Metro Cuadrado
             </Link>
-            <div className='text-sm text-muted-foreground'>MVP Wizard</div>
+            <div className='text-sm text-muted-foreground'>Calculadora de presupuesto</div>
           </nav>
         </header>
         <main className='container py-6'>
@@ -31,7 +31,7 @@ function Stepper() {
   return (
     <ol className='grid grid-cols-3 gap-2 text-sm'>
       {steps.map(s => (
-        <li key={s.href} className='rounded-xl border p-3 text-center'>
+        <li key={s.href} className='rounded-xl border border-secondary bg-secondary p-3 text-center cursor-pointer'>
           <Link href={s.href} className='inline-block'>
             {s.label}
           </Link>

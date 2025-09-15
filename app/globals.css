@@ -10,8 +10,9 @@
   --color-input: hsl(214 32% 91%);
   --color-ring: hsl(161 94% 30%);
   /* Branding Metro Cuadrado */
-  --color-primary: hsl(161 94% 30%);
-  --color-primary-foreground: hsl(0 0% 100%);
+  --color-primary: #1e3a5f;
+  --color-secondary: #f5b700;
+  --color-tertiary: #f2f2f2;
 
   --radius-xl: 1rem;
   --radius-2xl: 1.25rem;
@@ -39,4 +40,10 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+:root {
+  --color-primary: #1e3a5f;
+  --color-secondary: #f5b700;
+  --color-tertiary: #f2f2f2;
 }
