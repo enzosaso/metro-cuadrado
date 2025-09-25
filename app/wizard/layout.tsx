@@ -2,23 +2,43 @@
 import Link from 'next/link'
 import { WizardProvider } from '@/wizard/state'
 import { signOut, useSession } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
+import { useEffect } from 'react'
 
 export default function WizardLayout({ children }: { children: React.ReactNode }) {
+  const { data: session, status } = useSession()
+  const router = useRouter()
+
+  // redirect si no está logeado
+  useEffect(() => {
+    if (status === 'unauthenticated') {
+      router.push('/login')
+    }
+  }, [status, router])
+
+  if (status === 'loading') {
+    return <div className='p-6 text-center'>Cargando…</div>
+  }
+
+  if (!session) {
+    return null // mientras hace el redirect
+  }
+
   return (
     <WizardProvider>
-      <div className='min-h-screen'>
+      <div className='min-h-screen container mx-auto px-4 lg:px-0'>
         <header className='border-b'>
-          <nav className='container flex h-14 items-center justify-between'>
+          <nav className='flex h-14 items-center justify-between'>
             <Link href='/' className='font-semibold'>
               Metro Cuadrado
             </Link>
             <div className='flex items-center gap-4'>
-              <div className='text-sm text-muted-foreground hidden sm:block'>Calculadora de presupuesto</div>
+              <div className='hidden text-sm text-muted-foreground sm:block'>Calculadora de presupuesto</div>
               <UserMenu />
             </div>
           </nav>
         </header>
-        <main className='container py-6'>
+        <main className='py-6'>
           <Stepper />
           <div className='mt-6'>{children}</div>
         </main>
@@ -36,8 +56,8 @@ function Stepper() {
   return (
     <ol className='grid grid-cols-3 gap-2 text-sm'>
       {steps.map(s => (
-        <li key={s.href} className='rounded-xl border border-secondary bg-secondary p-3 text-center cursor-pointer'>
-          <Link href={s.href} className='inline-block'>
+        <li key={s.href} className='cursor-pointer rounded-xl border border-secondary bg-secondary p-3 text-center'>
+          <Link href={s.href} className='inline-block font-semibold'>
             {s.label}
           </Link>
         </li>
@@ -56,7 +76,7 @@ function UserMenu() {
       <span className='text-sm font-medium'>{session.user.name || session.user.email}</span>
       <button
         onClick={() => signOut({ callbackUrl: '/' })}
-        className='rounded-xl border px-3 py-1 text-sm hover:bg-muted cursor-pointer'
+        className='cursor-pointer rounded-xl border px-3 py-1 text-sm hover:bg-muted'
       >
         Cerrar sesión
       </button>
