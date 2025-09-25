@@ -30,7 +30,7 @@ export default function LoginPage() {
       if (res?.ok) {
         router.push('/wizard')
       } else {
-        setErrorMsg('Credenciales inválidas')
+        setErrorMsg('Usuario o contraseña incorrectos')
       }
     } else {
       // Registro
