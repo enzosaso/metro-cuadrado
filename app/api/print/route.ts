@@ -21,7 +21,11 @@ export async function POST(req: NextRequest) {
       QuoteDoc({ title: title || 'Presupuesto', items: selectedItems, lines, markupPercent })
     )
 
-    return new Response(pdf, {
+    // Convert Buffer to Uint8Array and then to Blob for proper Response handling
+    const pdfArray = new Uint8Array(pdf)
+    const blob = new Blob([pdfArray], { type: 'application/pdf' })
+
+    return new Response(blob, {
       status: 200,
       headers: {
         'Content-Type': 'application/pdf',

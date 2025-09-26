@@ -1,10 +1,28 @@
-import { NextAuthOptions } from 'next-auth'
-import type { JWT } from 'next-auth/jwt'
+import type { DefaultSession, NextAuthOptions, User } from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { usersCol } from '@/lib/firebaseAdmin'
 import { compare } from 'bcryptjs'
 
 type Role = 'owner' | 'admin' | 'user'
+
+declare module 'next-auth' {
+  interface Session {
+    user: {
+      id: string
+      role: Role
+    } & DefaultSession['user']
+  }
+
+  interface User {
+    role?: Role
+  }
+}
+
+declare module 'next-auth/jwt' {
+  interface JWT {
+    role?: Role
+  }
+}
 
 interface FireUser {
   id: string
@@ -27,6 +45,10 @@ async function getUserByEmail(email: string): Promise<FireUser | null> {
     name: data.name ?? 'Usuario',
     role: (data.role as Role) ?? 'user'
   }
+}
+
+if (!process.env.NEXTAUTH_SECRET) {
+  throw new Error('NEXTAUTH_SECRET is not set')
 }
 
 export const authOptions: NextAuthOptions = {
@@ -64,15 +86,17 @@ export const authOptions: NextAuthOptions = {
     })
   ],
   callbacks: {
-    async jwt({ token, user }: { token: JWT; user?: { id?: string; email?: string; name?: string; role?: Role } }) {
+    // Extend the default User type to include role
+    async jwt({ token, user }) {
       // Al iniciar sesión, hidratar el token
       if (user) {
         // user viene del return de authorize()
-        const u = user
-        if (u.id) token.sub = u.id
-        token.role = u.role ?? token.role ?? 'user'
-        token.name = u.name ?? token.name ?? null
-        token.email = u.email ?? token.email ?? null
+        if (user.id) token.sub = user.id
+        // Type assertion to handle custom user properties
+        const customUser = user as User
+        token.role = customUser.role ?? token.role ?? 'user'
+        token.name = user.name ?? token.name ?? null
+        token.email = user.email ?? token.email ?? null
       } else if (typeof token.email === 'string') {
         // Renovaciones: sincronizar rol/nombre por si cambian en Firestore
         try {
@@ -87,19 +111,10 @@ export const authOptions: NextAuthOptions = {
       }
       return token
     },
-    async session({
-      session,
-      token
-    }: {
-      session: { user?: { id?: string; name?: string | null; email?: string | null; role?: Role } }
-      token: JWT
-    }) {
+    async session({ session, token }) {
       if (session.user) {
-        if (token.sub) {
-          session.user = session.user || {}
-          session.user.id = token.sub
-          session.user.role = token.role ?? 'user'
-        }
+        session.user.id = token.sub as string
+        session.user.role = (token.role as Role) ?? 'user'
       }
       return session
     }
