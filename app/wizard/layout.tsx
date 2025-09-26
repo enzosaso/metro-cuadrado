@@ -1,9 +1,10 @@
 'use client'
 import Link from 'next/link'
-import { WizardProvider } from '@/wizard/state'
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
+import { WizardProvider } from '@/wizard/state'
+import Button from '@/components/ui/button'
 
 export default function WizardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
@@ -56,7 +57,7 @@ function Stepper() {
   return (
     <ol className='grid grid-cols-3 gap-2 text-sm'>
       {steps.map(s => (
-        <li key={s.href} className='cursor-pointer rounded-xl border border-secondary bg-secondary p-3 text-center'>
+        <li key={s.href} className='rounded-xl border border-secondary bg-secondary p-3 text-center text-primary'>
           <Link href={s.href} className='inline-block font-semibold'>
             {s.label}
           </Link>
@@ -74,12 +75,12 @@ function UserMenu() {
   return (
     <div className='flex items-center gap-2'>
       <span className='text-sm font-medium'>{session.user.name || session.user.email}</span>
-      <button
+      <Button
         onClick={() => signOut({ callbackUrl: '/' })}
-        className='cursor-pointer rounded-xl border px-3 py-1 text-sm hover:bg-muted'
+        className='rounded-xl border px-3 py-1 text-sm bg-white hover:bg-muted'
       >
         Cerrar sesión
-      </button>
+      </Button>
     </div>
   )
 }

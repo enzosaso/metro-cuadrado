@@ -5,6 +5,7 @@ import { useWizard } from '@/wizard/state'
 import { useItems } from '@/hooks/useItems'
 import type { Item } from '@/types'
 import { fmt } from '@/lib/calc'
+import Button from '@/components/ui/button'
 
 export default function SelectStep() {
   const { state, dispatch } = useWizard()
@@ -72,9 +73,9 @@ export default function SelectStep() {
             <div className='text-sm'>
               Seleccionados: <strong>{state.draft.selectedItems.length}</strong>
             </div>
-            <Link href='/wizard/edit' className='rounded-xl bg-primary px-3 py-1.5 text-white text-sm'>
+            <Button href='/wizard/edit' styleType='secondary' className='px-3 py-1.5 text-sm'>
               Continuar a Cantidades
-            </Link>
+            </Button>
           </div>
           <ul className='mt-3 grid gap-2 md:grid-cols-2'>
             {state.draft.selectedItems.map(sel => (
@@ -101,14 +102,15 @@ export default function SelectStep() {
                     </div>
                   )}
                 </div>
-                <button
+                <Button
                   type='button'
                   onClick={() => dispatch({ type: 'TOGGLE_SELECT', item: sel })}
-                  className='text-xs rounded-lg border border-secondary px-2 py-1 hover:opacity-80 cursor-pointer bg-secondary text-gray-800'
+                  styleType='primary'
+                  className='text-xs rounded-lg px-2 py-1 hover:opacity-80'
                   title='Quitar'
                 >
                   Quitar
-                </button>
+                </Button>
               </li>
             ))}
           </ul>
@@ -185,17 +187,17 @@ export default function SelectStep() {
       )}
 
       <div className='mt-6 flex justify-end gap-2'>
-        <Link href='/' className='rounded-xl border px-4 py-2'>
+        <Button href='/' styleType='tertiary'>
           Cancelar
-        </Link>
-        <Link
+        </Button>
+        <Button
           href={canNext ? '/wizard/edit' : '#'}
           className={`rounded-xl px-4 py-2 ${
             canNext ? 'bg-primary text-white' : 'border text-muted-foreground pointer-events-none'
           }`}
         >
           Continuar
-        </Link>
+        </Button>
       </div>
     </div>
   )

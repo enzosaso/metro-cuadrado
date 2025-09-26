@@ -3,6 +3,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { signIn } from 'next-auth/react'
 import { useSearchParams, useRouter } from 'next/navigation'
+import Button from '@/components/ui/button'
 
 function LoginForm() {
   const router = useRouter()
@@ -121,11 +122,7 @@ function LoginForm() {
             <div className='rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>{errorMsg}</div>
           )}
 
-          <button
-            type='submit'
-            disabled={loading}
-            className='w-full rounded-xl bg-primary px-3 py-2 text-white disabled:opacity-50 cursor-pointer'
-          >
+          <Button type='submit' loading={loading} className='w-full'>
             {loading
               ? mode === 'login'
                 ? 'Ingresando…'
@@ -133,7 +130,7 @@ function LoginForm() {
               : mode === 'login'
               ? 'Ingresar'
               : 'Registrarse'}
-          </button>
+          </Button>
         </form>
 
         <div className='mt-4 text-sm flex justify-between'>

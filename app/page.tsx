@@ -1,7 +1,7 @@
 'use client'
-import Link from 'next/link'
 import { useSession } from 'next-auth/react'
 import { CalculatorIcon, ArrowsPointingOutIcon, CubeIcon, HomeModernIcon } from '@heroicons/react/24/outline'
+import Button from '@/components/ui/button'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -9,7 +9,7 @@ export default function Home() {
   return (
     <main className='min-h-screen bg-white'>
       {/* Hero */}
-      <section className='relative overflow-hidden bg-[#17384C] text-white'>
+      <section className='relative overflow-hidden bg-primary text-white'>
         <div className='mx-auto max-w-6xl px-6 py-10 md:py-16'>
           {/* Top bar */}
           <div className='flex items-center justify-between'>
@@ -29,12 +29,9 @@ export default function Home() {
                 Tu presupuesto <br className='hidden md:block' /> de obra, al instante
               </h1>
               <div className='mt-6'>
-                <Link
-                  href={session && status === 'authenticated' ? '/wizard' : '/login'}
-                  className='inline-flex items-center justify-center rounded-xl bg-[#F4B000] px-6 py-3 text-base font-semibold text-[#17384C] shadow hover:bg-[#e2a200]'
-                >
+                <Button href={session && status === 'authenticated' ? '/wizard' : '/login'} styleType='primary'>
                   Comenzar cálculo
-                </Link>
+                </Button>
               </div>
             </div>
 

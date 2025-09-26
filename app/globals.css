@@ -10,8 +10,8 @@
   --color-input: hsl(214 32% 91%);
   --color-ring: hsl(161 94% 30%);
   /* Branding Metro Cuadrado */
-  --color-primary: #1e3a5f;
-  --color-secondary: #f5b700;
+  --color-primary: #17384c;
+  --color-secondary: #f4b000;
   --color-tertiary: #f2f2f2;
 
   --radius-xl: 1rem;
@@ -43,7 +43,7 @@
 }
 
 :root {
-  --color-primary: #1e3a5f;
-  --color-secondary: #f5b700;
+  --color-primary: #17384c;
+  --color-secondary: #f4b000;
   --color-tertiary: #f2f2f2;
 }

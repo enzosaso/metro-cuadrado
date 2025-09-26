@@ -1,15 +1,15 @@
 'use client'
-import Link from 'next/link'
 import { useState } from 'react'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
+import Button from '@/components/ui/button'
 
 export default function ReviewStep() {
   const { state } = useWizard()
   const items = state.draft.selectedItems
   const t = totals(items, state.draft.lines, state.draft.markupPercent)
   const [loading, setLoading] = useState(false)
-  console.log(state)
+
   const onPrint = async () => {
     try {
       setLoading(true)
@@ -85,16 +85,12 @@ export default function ReviewStep() {
       </aside>
 
       <div className='mt-6 flex justify-between'>
-        <Link href='/wizard/edit' className='rounded-xl border px-4 py-2'>
+        <Button href='/wizard/edit' styleType='tertiary'>
           Editar
-        </Link>
-        <button
-          onClick={onPrint}
-          disabled={loading}
-          className='rounded-xl bg-primary text-white px-4 py-2 disabled:opacity-50 cursor-pointer'
-        >
-          {loading ? 'Generando…' : 'Imprimir / PDF'}
-        </button>
+        </Button>
+        <Button onClick={onPrint} disabled={loading} loading={loading} styleType='secondary'>
+          Imprimir / PDF
+        </Button>
       </div>
     </div>
   )

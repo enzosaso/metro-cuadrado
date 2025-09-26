@@ -1,7 +1,7 @@
 'use client'
-import Link from 'next/link'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
+import Button from '@/components/ui/button'
 
 export default function EditStep() {
   const { state, dispatch } = useWizard()
@@ -125,19 +125,12 @@ export default function EditStep() {
 
       {/* Navegación */}
       <div className='mt-6 flex justify-between'>
-        <Link href='/wizard/select' className='rounded-xl border px-4 py-2'>
+        <Button href='/wizard/select' styleType='tertiary'>
           Volver
-        </Link>
-        <Link
-          href={canNext ? '/wizard/review' : '#'}
-          className={`rounded-xl px-4 py-2 ${
-            canNext
-              ? 'bg-primary text-primary-foreground text-white'
-              : 'border text-muted-foreground pointer-events-none'
-          }`}
-        >
+        </Button>
+        <Button href={canNext ? '/wizard/review' : '#'} styleType='secondary' disabled={!canNext}>
           Continuar
-        </Link>
+        </Button>
       </div>
     </div>
   )
