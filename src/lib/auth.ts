@@ -3,7 +3,7 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { usersCol } from '@/lib/firebaseAdmin'
 import { compare } from 'bcryptjs'
 
-type Role = 'owner' | 'admin' | 'user'
+type Role = 'owner' | 'admin' | 'user' | 'guest'
 
 declare module 'next-auth' {
   interface Session {
@@ -53,7 +53,11 @@ if (!process.env.NEXTAUTH_SECRET) {
 
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET,
-  session: { strategy: 'jwt' },
+  session: {
+    strategy: 'jwt',
+    maxAge: 60 * 24 * 60 * 60, // 60 días en segundos
+    updateAge: 24 * 60 * 60 // renueva cada 24 horas
+  },
   providers: [
     CredentialsProvider({
       name: 'Credentials',
@@ -80,7 +84,7 @@ export const authOptions: NextAuthOptions = {
           id: user.id,
           email: user.email,
           name: user.name ?? 'Usuario',
-          role: user.role ?? 'user'
+          role: user.role ?? 'guest'
         }
       }
     })
@@ -94,7 +98,7 @@ export const authOptions: NextAuthOptions = {
         if (user.id) token.sub = user.id
         // Type assertion to handle custom user properties
         const customUser = user as User
-        token.role = customUser.role ?? token.role ?? 'user'
+        token.role = customUser.role ?? token.role ?? 'guest'
         token.name = user.name ?? token.name ?? null
         token.email = user.email ?? token.email ?? null
       } else if (typeof token.email === 'string') {
@@ -102,7 +106,7 @@ export const authOptions: NextAuthOptions = {
         try {
           const found = await getUserByEmail(token.email.toLowerCase())
           if (found) {
-            token.role = found.role ?? token.role ?? 'user'
+            token.role = found.role ?? token.role ?? 'guest'
             token.name = found.name ?? token.name ?? null
           }
         } catch {
@@ -114,7 +118,7 @@ export const authOptions: NextAuthOptions = {
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub as string
-        session.user.role = (token.role as Role) ?? 'user'
+        session.user.role = (token.role as Role) ?? 'guest'
       }
       return session
     }

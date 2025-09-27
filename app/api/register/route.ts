@@ -27,7 +27,7 @@ export async function POST(req: Request) {
       email: emailNorm,
       passwordHash,
       name: name ?? null,
-      role: 'user',
+      role: 'guest',
       createdAt: new Date(),
       updatedAt: new Date()
     })

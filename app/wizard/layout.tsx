@@ -25,6 +25,10 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
     return null // mientras hace el redirect
   }
 
+  if (session?.user?.role === 'guest') {
+    return <div className='p-6 text-center'>No puedes acceder a esta página</div>
+  }
+
   return (
     <WizardProvider>
       <div className='min-h-screen container mx-auto px-4 lg:px-0'>

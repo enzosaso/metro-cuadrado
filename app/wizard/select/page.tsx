@@ -1,5 +1,4 @@
 'use client'
-import Link from 'next/link'
 import { useMemo, useState } from 'react'
 import { useWizard } from '@/wizard/state'
 import { useItems } from '@/hooks/useItems'
@@ -9,7 +8,7 @@ import Button from '@/components/ui/button'
 
 export default function SelectStep() {
   const { state, dispatch } = useWizard()
-  const { data: items, loading, error } = useItems()
+  const { data: items, isLoading, error } = useItems()
   const [q, setQ] = useState('')
   const [openParents, setOpenParents] = useState<Record<number, boolean>>({})
 
@@ -53,6 +52,16 @@ export default function SelectStep() {
   const toggleOpen = (baseCode: number) => setOpenParents(prev => ({ ...prev, [baseCode]: !prev[baseCode] }))
   const isSelected = (id: string) => state.draft.selectedItems.some(i => i.id === id)
 
+  const getParentName = (code: number) => {
+    const group = 100 // tamaño de bloque: 100 -> 1200, 1300...
+    const sign = code < 0 ? -1 : 1
+    const abs = Math.abs(Math.floor(code))
+    const parentCode = Math.floor(abs / group) * group * sign
+
+    const parent = parents.find(p => p.code === parentCode)
+    return parent?.chapter
+  }
+
   return (
     <div className='px-4 lg:px-0 lg:max-w-[60vw] mx-auto'>
       <h2 className='text-xl font-semibold'>Seleccioná rubros/ítems</h2>
@@ -83,6 +92,8 @@ export default function SelectStep() {
                 <div className='mr-3'>
                   <div className='font-medium text-sm'>{sel.name}</div>
                   <div className='text-xs text-muted-foreground'>
+                    <span className='font-semibold'>{getParentName(sel.code)}</span>
+                    <br />
                     {sel.chapter}
                     {sel.unit ? ` · ${sel.unit.toUpperCase()}` : ''}
                   </div>
@@ -117,10 +128,10 @@ export default function SelectStep() {
         </aside>
       )}
 
-      {loading && <div className='mt-4 text-sm text-muted-foreground'>Cargando ítems…</div>}
+      {isLoading && <div className='mt-4 text-sm text-muted-foreground'>Cargando ítems…</div>}
       {error && <div className='mt-4 text-sm text-red-600'>Error cargando ítems.</div>}
 
-      {!loading && !error && (
+      {!isLoading && !error && (
         <div className='mt-4 space-y-3'>
           {parents.map(parent => {
             const kids = childrenByParent[parent.code] ?? []
