@@ -24,6 +24,7 @@ export default function EditStep() {
             return (
               <div key={it.id} className='rounded-xl border p-4 shadow-sm'>
                 <div className='font-medium'>{it.name}</div>
+                <div className='text-xs text-muted-foreground'>{it.parent_name}</div>
                 <div className='text-sm font-semibold text-primary mb-2'>{it.chapter}</div>
 
                 <div className='flex flex-wrap gap-2 text-sm'>
@@ -72,6 +73,7 @@ export default function EditStep() {
                   <tr key={it.id} className='border-b'>
                     <td className='py-2 pr-2'>
                       <div className='font-medium'>{it.name}</div>
+                      <div className='text-xs font-semibold text-primary'>{it.parent_name}</div>
                       <div className='text-xs text-muted-foreground'>{it.chapter}</div>
                     </td>
                     <td className='py-2 pr-2'>{it.unit.toUpperCase()}</td>

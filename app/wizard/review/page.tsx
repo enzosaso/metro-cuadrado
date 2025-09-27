@@ -53,7 +53,11 @@ export default function ReviewStep() {
               const sub = lineSubtotal(it, line)
               return (
                 <tr key={it.id} className={index === items.length - 1 ? '' : 'border-b'}>
-                  <td className='py-2 px-3'>{it.chapter}</td>
+                  <td className='py-2 px-3'>
+                    <span className='font-semibold'>{it.parent_name}</span>
+                    <br />
+                    {it.chapter}
+                  </td>
                   <td className='py-2 px-3'>{line.quantity || '0'}</td>
                   <td className='py-2 px-3'>{it.unit}</td>
                   <td className='py-2 px-3 text-right'>{fmt(sub)}</td>

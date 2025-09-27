@@ -6,6 +6,7 @@ export interface Item {
   chapter: string // nombre del capítulo
   name: string // descripción
   unit: Unit
+  parent_name: string
   pu_materials: number // números chicos para MVP (ARS)
   pu_labor: number
 }

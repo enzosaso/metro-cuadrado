@@ -3,6 +3,17 @@ import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
 import type { Item, LineDraft } from '@/types'
 import { lineSubtotal, totals, fmt } from '@/lib/calc'
 
+const groupByParent = (items: Item[], lines: Record<string, LineDraft>) => {
+  const groups: Record<string, Item[]> = {}
+  items.forEach(it => {
+    if (!lines[it.id]) return
+    const key = it.parent_name || 'Otros'
+    if (!groups[key]) groups[key] = []
+    groups[key].push(it)
+  })
+  return groups
+}
+
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 10, fontFamily: 'Helvetica' },
   header: { marginBottom: 12 },
@@ -26,6 +37,7 @@ export interface QuoteDocProps {
 
 export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDocProps) {
   const chosen = items.filter(i => lines[i.id])
+  const groups = groupByParent(chosen, lines)
   const t = totals(chosen, lines, markupPercent)
 
   return (
@@ -46,16 +58,29 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
             <Text style={[styles.th, { flexBasis: '24%' }, styles.right]}>Subtotal</Text>
           </View>
 
-          {chosen.map(it => {
-            const line = lines[it.id]!
-            const sub = lineSubtotal(it, line)
+          {Object.entries(groups).map(([parent, group]) => {
+            const groupSubtotal = group.reduce((acc, it) => acc + lineSubtotal(it, lines[it.id]!), 0)
             return (
-              <View key={it.id} style={styles.tr}>
-                <Text style={[styles.td, { flexBasis: '52%' }]}>{it.chapter}</Text>
-                <Text style={[styles.td, { flexBasis: '12%' }]}>{line.quantity || '0'}</Text>
-                <Text style={[styles.td, { flexBasis: '12%' }]}>{it.unit}</Text>
-                <Text style={[styles.td, { flexBasis: '24%' }, styles.right]}>{fmt(sub)}</Text>
-              </View>
+              <React.Fragment key={parent}>
+                {/* Encabezado de sección */}
+                <View style={[styles.tr, { backgroundColor: '#fafafa' }]}>
+                  <Text style={[styles.th, { flexBasis: '76%' }]}>{parent}</Text>
+                  <Text style={[styles.th, styles.right, { flexBasis: '24%' }]}>{fmt(groupSubtotal)}</Text>
+                </View>
+                {/* Filas del grupo */}
+                {group.map(it => {
+                  const line = lines[it.id]!
+                  const sub = lineSubtotal(it, line)
+                  return (
+                    <View key={it.id} style={styles.tr}>
+                      <Text style={[styles.td, { flexBasis: '52%' }]}>{it.chapter}</Text>
+                      <Text style={[styles.td, { flexBasis: '12%' }]}>{line.quantity || '0'}</Text>
+                      <Text style={[styles.td, { flexBasis: '12%' }]}>{it.unit}</Text>
+                      <Text style={[styles.td, styles.right, { flexBasis: '24%' }]}>{fmt(sub)}</Text>
+                    </View>
+                  )
+                })}
+              </React.Fragment>
             )
           })}
         </View>

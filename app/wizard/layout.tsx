@@ -61,11 +61,9 @@ function Stepper() {
   return (
     <ol className='grid grid-cols-3 gap-2 text-sm'>
       {steps.map(s => (
-        <li key={s.href} className='rounded-xl border border-secondary bg-secondary p-3 text-center text-primary'>
-          <Link href={s.href} className='inline-block font-semibold'>
-            {s.label}
-          </Link>
-        </li>
+        <Link href={s.href} className='inline-block font-semibold' key={s.href}>
+          <li className='rounded-xl border border-secondary bg-secondary p-3 text-center text-primary'>{s.label}</li>
+        </Link>
       ))}
     </ol>
   )
