@@ -1,11 +1,14 @@
 'use client'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
 import Button from '@/components/ui/button'
+import { getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
+import { useItems } from '@/hooks/useItems'
 
 export default function ReviewStep() {
   const { state } = useWizard()
+  const { data: dbItems = [] } = useItems()
   const items = state.draft.selectedItems
   const t = totals(items, state.draft.lines, state.draft.markupPercent)
   const [loading, setLoading] = useState(false)
@@ -34,6 +37,8 @@ export default function ReviewStep() {
     }
   }
 
+  const { parents } = useMemo(() => getParentsAndChild(dbItems), [dbItems])
+
   return (
     <div>
       <h2 className='text-xl font-semibold'>Resumen</h2>
@@ -54,7 +59,9 @@ export default function ReviewStep() {
               return (
                 <tr key={it.id} className={index === items.length - 1 ? '' : 'border-b'}>
                   <td className='py-2 px-3'>
-                    <span className='font-semibold'>{it.parent_name}</span>
+                    <span className='font-semibold'>
+                      {getParentCode(it.parent_name, parents) ?? ''} {it.parent_name}
+                    </span>
                     <br />
                     {it.chapter}
                   </td>

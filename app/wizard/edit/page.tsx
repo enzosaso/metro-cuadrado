@@ -1,14 +1,20 @@
 'use client'
+import { useMemo } from 'react'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
 import Button from '@/components/ui/button'
+import { getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
+import { useItems } from '@/hooks/useItems'
 
 export default function EditStep() {
   const { state, dispatch } = useWizard()
+  const { data: items = [] } = useItems()
 
   const canNext = state.draft.selectedItems.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
 
   const t = totals(state.draft.selectedItems, state.draft.lines, state.draft.markupPercent)
+
+  const { parents } = useMemo(() => getParentsAndChild(items), [items])
 
   return (
     <div>
@@ -24,7 +30,9 @@ export default function EditStep() {
             return (
               <div key={it.id} className='rounded-xl border p-4 shadow-sm'>
                 <div className='font-medium'>{it.name}</div>
-                <div className='text-xs text-muted-foreground'>{it.parent_name}</div>
+                <div className='text-xs text-muted-foreground'>
+                  {getParentCode(it.parent_name, parents) ?? ''} {it.parent_name}
+                </div>
                 <div className='text-sm font-semibold text-primary mb-2'>{it.chapter}</div>
 
                 <div className='flex flex-wrap gap-2 text-sm'>
@@ -73,7 +81,9 @@ export default function EditStep() {
                   <tr key={it.id} className='border-b'>
                     <td className='py-2 pr-2'>
                       <div className='font-medium'>{it.name}</div>
-                      <div className='text-xs font-semibold text-primary'>{it.parent_name}</div>
+                      <div className='text-xs font-semibold text-primary'>
+                        {getParentCode(it.parent_name, parents)} {it.parent_name}
+                      </div>
                       <div className='text-xs text-muted-foreground'>{it.chapter}</div>
                     </td>
                     <td className='py-2 pr-2'>{it.unit.toUpperCase()}</td>

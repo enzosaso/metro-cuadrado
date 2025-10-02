@@ -2,58 +2,22 @@
 import { useMemo, useState } from 'react'
 import { useWizard } from '@/wizard/state'
 import { useItems } from '@/hooks/useItems'
-import type { Item } from '@/types'
 import { fmt } from '@/lib/calc'
 import Button from '@/components/ui/button'
+import { sortByParentCode, getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
 
 export default function SelectStep() {
   const { state, dispatch } = useWizard()
-  const { data: items, isLoading, error } = useItems()
+  const { data: items = [], isLoading, error } = useItems()
   const [query, setQuery] = useState('')
   const [openParents, setOpenParents] = useState<Record<number, boolean>>({})
 
-  const { parents, childrenByParent } = useMemo(() => {
-    const all = items ?? []
-    const search = query.trim().toLowerCase()
-    const parents = all.filter(i => i.code % 100 === 0)
-    const children = all.filter(i => i.code % 100 !== 0)
-
-    const group: Record<number, Item[]> = {}
-    for (const child of children) {
-      const base = Math.floor(child.code / 100) * 100
-      if (!group[base]) group[base] = []
-      const parent = parents.find(p => p.code === base)
-      group[base].push({ ...child, parent_name: parent?.chapter || 'Desconocido' })
-    }
-
-    if (search) {
-      const matches = (it: Item) =>
-        it.name.toLowerCase().includes(search) ||
-        it.chapter.toLowerCase().includes(search) ||
-        String(it.code).includes(search)
-
-      const filteredParents = parents.filter(p => matches(p) || (group[p.code]?.some(matches) ?? false))
-      const filteredGroup: Record<number, Item[]> = {}
-      for (const p of filteredParents) {
-        const allKids = group[p.code] ?? []
-        filteredGroup[p.code] = allKids.filter(matches)
-      }
-      return {
-        parents: filteredParents.sort((a, b) => a.code - b.code),
-        childrenByParent: filteredGroup
-      }
-    }
-
-    for (const k of Object.keys(group)) group?.[+k]?.sort((a, b) => a.code - b.code)
-    return {
-      parents: parents.sort((a, b) => a.code - b.code),
-      childrenByParent: group
-    }
-  }, [items, query])
+  const { parents, childrenByParent } = useMemo(() => getParentsAndChild(items, query), [items, query])
 
   const canNext = state.draft.selectedItems.length > 0
   const toggleOpen = (baseCode: number) => setOpenParents(prev => ({ ...prev, [baseCode]: !prev[baseCode] }))
   const isSelected = (id: string) => state.draft.selectedItems.some(i => i.id === id)
+  const sortSelectedItems = useMemo(() => sortByParentCode(state.draft.selectedItems), [state.draft.selectedItems])
 
   return (
     <div className='px-4 lg:px-0 lg:max-w-[60vw] mx-auto'>
@@ -69,23 +33,25 @@ export default function SelectStep() {
       </div>
 
       {/* Panel de seleccionados */}
-      {state.draft.selectedItems.length > 0 && (
+      {sortSelectedItems.length > 0 && (
         <aside className='mt-4 rounded-2xl border p-3'>
           <div className='flex items-center justify-between'>
             <div className='text-sm'>
-              Seleccionados: <strong>{state.draft.selectedItems.length}</strong>
+              Seleccionados: <strong>{sortSelectedItems.length}</strong>
             </div>
             <Button href='/wizard/edit' styleType='secondary' className='px-3 py-1.5 text-sm'>
               Continuar a Cantidades
             </Button>
           </div>
           <ul className='mt-3 grid gap-2 md:grid-cols-2'>
-            {state.draft.selectedItems.map(sel => (
+            {sortSelectedItems.map(sel => (
               <li key={sel.id} className='flex items-start justify-between rounded-xl border px-3 py-2'>
                 <div className='mr-3'>
                   <div className='font-medium text-sm'>{sel.name}</div>
                   <div className='text-xs text-muted-foreground'>
-                    <span className='font-semibold'>{sel.parent_name}</span>
+                    <span className='font-semibold'>
+                      {getParentCode(sel.parent_name, parents) ?? ''} {sel.parent_name}
+                    </span>
                     <br />
                     {sel.chapter}
                     {sel.unit ? ` · ${sel.unit.toUpperCase()}` : ''}
@@ -140,7 +106,9 @@ export default function SelectStep() {
                   aria-expanded={open}
                 >
                   <div className='text-left'>
-                    <div className='font-semibold text-primary'>{parent.chapter || parent.name}</div>
+                    <div className='font-semibold text-primary'>
+                      {parent.code / 100}. {parent.chapter || parent.name}
+                    </div>
                   </div>
                   <span className='text-sm'>{open ? '▾' : '▸'}</span>
                 </button>
