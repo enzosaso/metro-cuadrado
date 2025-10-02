@@ -9,23 +9,24 @@ import { useItems } from '@/hooks/useItems'
 export default function EditStep() {
   const { state, dispatch } = useWizard()
   const { data: items = [] } = useItems()
+  const lines = state.draft.lines
 
-  const canNext = state.draft.selectedItems.every(i => Number(state.draft.lines[i.id]?.quantity || 0) > 0)
-
-  const t = totals(state.draft.selectedItems, state.draft.lines, state.draft.markupPercent)
-
+  const canNext = state.draft.selectedItems.every(i => Number(lines[i.id]?.quantity || 0) > 0)
+  const t = totals(state.draft.selectedItems, lines, state.draft.markupPercent)
   const { parents } = useMemo(() => getParentsAndChild(items), [items])
 
   return (
     <div>
       <h2 className='text-xl font-semibold'>Cargá cantidades y ajustes</h2>
 
-      {/* Vista responsive: cards en mobile, tabla en desktop */}
       <div className='mt-4'>
         {/* Mobile: cards */}
         <div className='space-y-3 md:hidden'>
           {state.draft.selectedItems.map(it => {
-            const line = state.draft.lines[it.id]!
+            const line = lines[it.id]!
+            const qty = Number(line.quantity || 0)
+            const subMat = qty * (it.pu_materials ?? 0)
+            const subLab = qty * (it.pu_labor ?? 0)
             const subtotal = lineSubtotal(it, line)
             return (
               <div key={it.id} className='rounded-xl border p-4 shadow-sm'>
@@ -51,8 +52,16 @@ export default function EditStep() {
                     className='rounded-xl border px-2 py-1 w-full'
                   />
                   <div className='flex justify-between text-xs'>
-                    <span>Precio Materiales: {it.pu_materials ? fmt(it.pu_materials) : '-'}</span>
-                    <span>Precio Mano de Obra: {it.pu_labor ? fmt(it.pu_labor) : '-'}</span>
+                    <span>PU Materiales: {it.pu_materials ? fmt(it.pu_materials) : '-'}</span>
+                    <span>PU Mano de Obra: {it.pu_labor ? fmt(it.pu_labor) : '-'}</span>
+                  </div>
+                  <div className='flex justify-between text-xs'>
+                    <span>
+                      Subtot. Materiales: <strong>{fmt(subMat)}</strong>
+                    </span>
+                    <span>
+                      Subtot. Mano de Obra: <strong>{fmt(subLab)}</strong>
+                    </span>
                   </div>
                 </div>
               </div>
@@ -70,12 +79,17 @@ export default function EditStep() {
                 <th className='py-2 pr-2 w-28'>Cantidad</th>
                 <th className='py-2 pr-2 w-28'>PU Materiales</th>
                 <th className='py-2 pr-2 w-28'>PU Mano de Obra</th>
+                <th className='py-2 pr-2 w-32 text-right'>Sub. Materiales</th>
+                <th className='py-2 pr-2 w-32 text-right'>Sub. Mano de Obra</th>
                 <th className='py-2 pr-2 w-32 text-right'>Subtotal</th>
               </tr>
             </thead>
             <tbody>
               {state.draft.selectedItems.map(it => {
-                const line = state.draft.lines[it.id]!
+                const line = lines[it.id]!
+                const qty = Number(line.quantity || 0)
+                const subMat = qty * (it.pu_materials ?? 0)
+                const subLab = qty * (it.pu_labor ?? 0)
                 const subtotal = lineSubtotal(it, line)
                 return (
                   <tr key={it.id} className='border-b'>
@@ -96,8 +110,10 @@ export default function EditStep() {
                         className='w-24 rounded-xl border px-2 py-1'
                       />
                     </td>
-                    <td className='py-2 pr-2'>{!it.pu_materials ? '-' : fmt(it.pu_materials)}</td>
-                    <td className='py-2 pr-2'>{!it.pu_labor ? '-' : fmt(it.pu_labor)}</td>
+                    <td className='py-2 pr-2'>{it.pu_materials ? fmt(it.pu_materials) : '-'}</td>
+                    <td className='py-2 pr-2'>{it.pu_labor ? fmt(it.pu_labor) : '-'}</td>
+                    <td className='py-2 pr-2 text-right'>{fmt(subMat)}</td>
+                    <td className='py-2 pr-2 text-right'>{fmt(subLab)}</td>
                     <td className='py-2 pr-2 text-right'>{fmt(subtotal)}</td>
                   </tr>
                 )
@@ -107,7 +123,6 @@ export default function EditStep() {
         </div>
       </div>
 
-      {/* Totales */}
       <aside className='mt-4 rounded-2xl border p-4'>
         <div className='flex flex-wrap items-center gap-4'>
           <div>
@@ -135,7 +150,6 @@ export default function EditStep() {
         </div>
       </aside>
 
-      {/* Navegación */}
       <div className='mt-6 flex justify-between'>
         <Button href='/wizard/select' styleType='tertiary'>
           Volver

@@ -52,10 +52,12 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
 
         <View style={styles.table}>
           <View style={styles.tr}>
-            <Text style={[styles.th, { flexBasis: '52%' }]}>Ítem</Text>
-            <Text style={[styles.th, { flexBasis: '12%' }]}>Cant.</Text>
-            <Text style={[styles.th, { flexBasis: '12%' }]}>Unidad</Text>
-            <Text style={[styles.th, { flexBasis: '24%' }, styles.right]}>Subtotal</Text>
+            <Text style={[styles.th, { flexBasis: '36%' }]}>Ítem</Text>
+            <Text style={[styles.th, { flexBasis: '10%' }]}>Cant.</Text>
+            <Text style={[styles.th, { flexBasis: '10%' }]}>Unidad</Text>
+            <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Materiales</Text>
+            <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Mano de Obra</Text>
+            <Text style={[styles.th, { flexBasis: '12%' }, styles.right]}>Subtotal</Text>
           </View>
 
           {Object.entries(groups).map(([parent, group]) => {
@@ -64,19 +66,24 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
               <React.Fragment key={parent}>
                 {/* Encabezado de sección */}
                 <View style={[styles.tr, { backgroundColor: '#fafafa' }]}>
-                  <Text style={[styles.th, { flexBasis: '76%' }]}>{parent}</Text>
-                  <Text style={[styles.th, styles.right, { flexBasis: '24%' }]}>{fmt(groupSubtotal)}</Text>
+                  <Text style={[styles.th, { flexBasis: '88%' }]}>{parent}</Text>
+                  <Text style={[styles.th, styles.right, { flexBasis: '12%' }]}>{fmt(groupSubtotal)}</Text>
                 </View>
                 {/* Filas del grupo */}
                 {group.map(it => {
                   const line = lines[it.id]!
+                  const qty = Number(line.quantity || 0)
+                  const subMat = qty * (it.pu_materials ?? 0)
+                  const subLab = qty * (it.pu_labor ?? 0)
                   const sub = lineSubtotal(it, line)
                   return (
                     <View key={it.id} style={styles.tr}>
-                      <Text style={[styles.td, { flexBasis: '52%' }]}>{it.chapter}</Text>
-                      <Text style={[styles.td, { flexBasis: '12%' }]}>{line.quantity || '0'}</Text>
-                      <Text style={[styles.td, { flexBasis: '12%' }]}>{it.unit}</Text>
-                      <Text style={[styles.td, styles.right, { flexBasis: '24%' }]}>{fmt(sub)}</Text>
+                      <Text style={[styles.td, { flexBasis: '36%' }]}>{it.chapter}</Text>
+                      <Text style={[styles.td, { flexBasis: '10%' }]}>{line.quantity || '0'}</Text>
+                      <Text style={[styles.td, { flexBasis: '10%' }]}>{it.unit}</Text>
+                      <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>{subMat ? fmt(subMat) : '-'}</Text>
+                      <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>{subLab ? fmt(subLab) : '-'}</Text>
+                      <Text style={[styles.td, styles.right, { flexBasis: '12%' }]}>{fmt(sub)}</Text>
                     </View>
                   )
                 })}
