@@ -1,7 +1,7 @@
 'use client'
 import { createContext, useContext, useEffect, useReducer } from 'react'
 import type { BudgetDraft, LineDraft, Item } from '@/types'
-import { sortByParentCode } from '@/lib/wizard-helpers'
+import { sortByItemCode } from '@/lib/wizard-helpers'
 
 type Step = 'select' | 'edit' | 'review'
 
@@ -36,7 +36,7 @@ function reducer(state: WizardState, action: Action): WizardState {
       const lines = { ...state.draft.lines }
       if (!exists && !lines[action.item.id]) lines[action.item.id] = { item: action.item, quantity: '' }
       if (exists) delete lines[action.item.id]
-      return { ...state, draft: { ...state.draft, selectedItems: sortByParentCode(selectedItems), lines } }
+      return { ...state, draft: { ...state.draft, selectedItems: sortByItemCode(selectedItems), lines } }
     }
     case 'SET_LINE': {
       const current = state.draft.lines[action.item.id] ?? { item: action.item, quantity: '' }

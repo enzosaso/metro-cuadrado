@@ -1,6 +1,6 @@
 import type { Item } from '@/types'
 
-export const sortByParentCode = (items: Item[]) => {
+export const sortByItemCode = (items: Item[]) => {
   return items.sort((a, b) => a.code - b.code)
 }
 

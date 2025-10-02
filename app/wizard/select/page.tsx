@@ -4,7 +4,7 @@ import { useWizard } from '@/wizard/state'
 import { useItems } from '@/hooks/useItems'
 import { fmt } from '@/lib/calc'
 import Button from '@/components/ui/button'
-import { sortByParentCode, getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
+import { sortByItemCode, getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
 
 export default function SelectStep() {
   const { state, dispatch } = useWizard()
@@ -17,7 +17,7 @@ export default function SelectStep() {
   const canNext = state.draft.selectedItems.length > 0
   const toggleOpen = (baseCode: number) => setOpenParents(prev => ({ ...prev, [baseCode]: !prev[baseCode] }))
   const isSelected = (id: string) => state.draft.selectedItems.some(i => i.id === id)
-  const sortSelectedItems = useMemo(() => sortByParentCode(state.draft.selectedItems), [state.draft.selectedItems])
+  const sortSelectedItems = useMemo(() => sortByItemCode(state.draft.selectedItems), [state.draft.selectedItems])
 
   return (
     <div className='px-4 lg:px-0 lg:max-w-[60vw] mx-auto'>
