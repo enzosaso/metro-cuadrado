@@ -1,4 +1,5 @@
 import type { DefaultSession, NextAuthOptions, User } from 'next-auth'
+import NextAuth from 'next-auth'
 import CredentialsProvider from 'next-auth/providers/credentials'
 import { usersCol } from '@/lib/firebaseAdmin'
 import { compare } from 'bcryptjs'
@@ -127,3 +128,5 @@ export const authOptions: NextAuthOptions = {
     signIn: '/login'
   }
 }
+
+export const auth = NextAuth(authOptions)

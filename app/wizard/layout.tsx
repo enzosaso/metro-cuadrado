@@ -2,31 +2,31 @@
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { WizardProvider } from '@/wizard/state'
 import Button from '@/components/ui/button'
+import { fmt } from '@/lib/calc'
+
+const SUBSCRIPTION_PRICE = process.env.NEXT_PUBLIC_SUBSCRIPTION_PRICE
 
 export default function WizardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession()
   const router = useRouter()
 
-  // redirect si no está logeado
+  // redirect si no está logueado
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login')
-    }
+    if (status === 'unauthenticated') router.push('/login')
   }, [status, router])
 
-  if (status === 'loading') {
-    return <div className='p-6 text-center'>Cargando…</div>
-  }
+  if (status === 'loading') return <div className='p-6 text-center'>Cargando…</div>
+  if (!session) return null // mientras redirige
 
-  if (!session) {
-    return null // mientras hace el redirect
-  }
-
-  if (session?.user?.role === 'guest') {
-    return <div className='p-6 text-center'>No puedes acceder a esta página</div>
+  if (session.user?.role === 'guest') {
+    return (
+      <main className='min-h-screen grid place-content-center p-6'>
+        <SubscriptionCTA />
+      </main>
+    )
   }
 
   return (
@@ -52,6 +52,58 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
   )
 }
 
+function SubscriptionCTA() {
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const startSubscription = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const res = await fetch('/api/mp/preapproval', { method: 'POST' })
+      if (!res.ok) throw new Error('No se pudo iniciar la suscripción')
+      const { init_point } = (await res.json()) as { init_point: string }
+      window.location.href = init_point // redirige a Mercado Pago
+    } catch {
+      setError('Error iniciando la suscripción')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className='w-[380px] max-w-sm rounded-2xl border bg-background p-6 shadow-sm'>
+      <h1 className='text-2xl font-bold text-center'>Suscripción requerida</h1>
+      <p className='mt-2 text-sm text-muted-foreground text-center'>
+        Tu cuenta está en modo <strong>invitado</strong>. Suscribite para desbloquear la calculadora de presupuesto.
+      </p>
+
+      <div className='mt-5 rounded-xl border p-4'>
+        <div className='flex items-baseline justify-between'>
+          <div>
+            <div className='text-lg font-semibold'>{fmt(Number(SUBSCRIPTION_PRICE))} / mes</div>
+            <div className='text-xs text-muted-foreground'>AR$ por mes · Renovación automática</div>
+          </div>
+          <Button onClick={startSubscription} disabled={loading} styleType='primary'>
+            {loading ? 'Redirigiendo…' : 'Suscribirme'}
+          </Button>
+        </div>
+        {error && <div className='mt-3 text-sm text-red-600'>{error}</div>}
+      </div>
+
+      <p className='mt-3 text-xs text-muted-foreground text-center'>
+        Serás redirigido a Mercado Pago para autorizar el débito automático.
+      </p>
+
+      <div className='mt-4 flex justify-center'>
+        <Link href='/' className='text-primary hover:underline text-sm'>
+          Volver al inicio
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 function Stepper() {
   const steps = [
     { href: '/wizard/select', label: '1. Rubros' },
@@ -71,9 +123,7 @@ function Stepper() {
 
 function UserMenu() {
   const { data: session } = useSession()
-
   if (!session?.user) return null
-
   return (
     <div className='flex items-center gap-2'>
       <span className='text-sm font-medium'>{session.user.name || session.user.email}</span>
