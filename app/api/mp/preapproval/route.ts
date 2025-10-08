@@ -3,12 +3,18 @@ import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createPreapproval } from '@/lib/mercadopago'
 
+export const runtime = 'nodejs'
+export const dynamic = 'force-dynamic'
+
 const SUSCRIPTION_PRICE = process.env.SUSCRIPTION_PRICE
 const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || ''
 
 export async function POST(req: NextRequest) {
   const token = await getToken({ req, secret: NEXTAUTH_SECRET })
-  const email = token?.email as string | undefined
+  const email = typeof token?.email === 'string' ? token.email.toLowerCase() : undefined
+  const userId = typeof token?.sub === 'string' ? token.sub : undefined
+  if (!email || !userId) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+
   if (!email) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
   const APP_URL = process.env.APP_URL!
@@ -26,7 +32,8 @@ export async function POST(req: NextRequest) {
     frequency,
     frequency_type,
     back_url: `${APP_URL}/wizard`,
-    notification_url
+    notification_url,
+    external_reference: userId
   })
 
   return NextResponse.json({ init_point: pre.init_point })

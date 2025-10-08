@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getPreapproval } from '@/lib/mercadopago'
-import { setUserRoleByEmail } from '@/lib/users'
+import { setUserRoleById } from '@/lib/users'
 
 /**
  * Mercado Pago envía notificaciones con query params como:
@@ -19,10 +19,10 @@ export async function POST(req: NextRequest) {
     const pre = await getPreapproval(id)
     // Estados típicos: authorized, paused, cancelled
     const status: string = pre.status
-    const email: string | undefined = pre.payer_email || pre.payer?.email || pre.external_reference
+    const userId = pre?.external_reference as string | undefined
 
-    if (email && status === 'authorized') {
-      await setUserRoleByEmail(email.toLowerCase(), 'user')
+    if (status === 'authorized') {
+      if (userId) await setUserRoleById(userId, 'user')
     }
 
     return new Response('ok', { status: 200 })

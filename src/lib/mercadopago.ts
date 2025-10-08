@@ -29,6 +29,7 @@ export async function createPreapproval(opts: {
   frequency_type: 'months' | 'days'
   back_url: string // vuelve el usuario
   notification_url: string // webhook (opcional si lo seteás en el panel)
+  external_reference: string
 }) {
   return mpFetch<{ id: string; init_point: string; sandbox_init_point?: string }>('/preapproval', {
     method: 'POST',
@@ -36,7 +37,7 @@ export async function createPreapproval(opts: {
       payer_email: opts.payer_email,
       reason: opts.reason,
       back_url: opts.back_url,
-      external_reference: opts.payer_email, // para identificar al usuario
+      external_reference: opts.external_reference, // para identificar al usuario
       auto_recurring: {
         frequency: opts.frequency,
         frequency_type: opts.frequency_type, // "months" o "days"
