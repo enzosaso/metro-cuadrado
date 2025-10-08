@@ -15,7 +15,14 @@ export async function POST(req: NextRequest) {
   const userId = typeof token?.sub === 'string' ? token.sub : undefined
   if (!email || !userId) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
-  if (!email) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
+  const body = await req.json().catch(() => ({}))
+  const mpEmailRaw: unknown = body?.mpEmail
+  const mpEmail = typeof mpEmailRaw === 'string' ? mpEmailRaw.trim().toLowerCase() : ''
+
+  // Validación mínima de email
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mpEmail)) {
+    return NextResponse.json({ error: 'Email de Mercado Pago inválido' }, { status: 400 })
+  }
 
   const APP_URL = process.env.APP_URL!
   const reason = 'Suscripción Metro Cuadrado'
@@ -26,7 +33,7 @@ export async function POST(req: NextRequest) {
   const notification_url = `${APP_URL}/api/mp/webhook` // debe ser público en prod
 
   const pre = await createPreapproval({
-    payer_email: email,
+    payer_email: mpEmail,
     reason,
     amount,
     frequency,

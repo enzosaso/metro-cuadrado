@@ -55,15 +55,23 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
 function SubscriptionCTA() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mpEmail, setMpEmail] = useState('')
 
   const startSubscription = async () => {
     try {
       setLoading(true)
       setError(null)
-      const res = await fetch('/api/mp/preapproval', { method: 'POST' })
-      if (!res.ok) throw new Error('No se pudo iniciar la suscripción')
+      const res = await fetch('/api/mp/preapproval', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ mpEmail })
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}))
+        throw new Error(data.error || 'No se pudo iniciar la suscripción')
+      }
       const { init_point } = (await res.json()) as { init_point: string }
-      window.location.href = init_point // redirige a Mercado Pago
+      window.location.href = init_point
     } catch {
       setError('Ocurrió un error')
     } finally {
@@ -75,16 +83,31 @@ function SubscriptionCTA() {
     <div className='w-[380px] max-w-sm rounded-2xl border bg-background p-6 shadow-sm'>
       <h1 className='text-2xl font-bold text-center'>Suscripción requerida</h1>
       <p className='mt-2 text-sm text-muted-foreground text-center'>
-        Tu cuenta está en modo <strong>invitado</strong>. Suscribite para desbloquear la calculadora de presupuesto.
+        Ingresá el <strong>email de tu cuenta de Mercado Pago</strong> (debe coincidir al autorizar).
       </p>
+
+      <div className='mt-4 space-y-2'>
+        <label className='text-sm' htmlFor='mpEmail'>
+          Email de Mercado Pago
+        </label>
+        <input
+          id='mpEmail'
+          type='email'
+          value={mpEmail}
+          onChange={e => setMpEmail(e.target.value)}
+          placeholder='tu-email@mercadopago.com'
+          className='w-full rounded-xl border px-3 py-2'
+          required
+        />
+      </div>
 
       <div className='mt-5 rounded-xl border p-4'>
         <div className='flex items-baseline justify-between'>
           <div>
-            <div className='text-lg font-semibold'>{fmt(Number(SUBSCRIPTION_PRICE))} / mes</div>
+            <div className='text-lg font-semibold'>$ 3.000 / mes</div>
             <div className='text-xs text-muted-foreground'>AR$ por mes · Renovación automática</div>
           </div>
-          <Button onClick={startSubscription} disabled={loading} styleType='primary'>
+          <Button onClick={startSubscription} disabled={loading || !mpEmail} styleType='primary'>
             {loading ? 'Redirigiendo…' : 'Suscribirme'}
           </Button>
         </div>
@@ -92,7 +115,7 @@ function SubscriptionCTA() {
       </div>
 
       <p className='mt-3 text-xs text-muted-foreground text-center'>
-        Serás redirigido a Mercado Pago para autorizar el débito automático.
+        Usaremos ese email como titular de la suscripción en Mercado Pago.
       </p>
 
       <div className='mt-4 flex justify-center'>
