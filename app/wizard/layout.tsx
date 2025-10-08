@@ -104,7 +104,7 @@ function SubscriptionCTA() {
       <div className='mt-5 rounded-xl border p-4'>
         <div className='flex items-baseline justify-between'>
           <div>
-            <div className='text-lg font-semibold'>$ 3.000 / mes</div>
+            <div className='text-lg font-semibold'>{fmt(Number(SUBSCRIPTION_PRICE))} / mes</div>
             <div className='text-xs text-muted-foreground'>AR$ por mes · Renovación automática</div>
           </div>
           <Button onClick={startSubscription} disabled={loading || !mpEmail} styleType='primary'>
