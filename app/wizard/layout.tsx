@@ -65,7 +65,7 @@ function SubscriptionCTA() {
       const { init_point } = (await res.json()) as { init_point: string }
       window.location.href = init_point // redirige a Mercado Pago
     } catch {
-      setError('Error iniciando la suscripción')
+      setError('Ocurrió un error')
     } finally {
       setLoading(false)
     }

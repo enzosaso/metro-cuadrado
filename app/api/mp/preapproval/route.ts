@@ -1,12 +1,14 @@
 import { NextResponse } from 'next/server'
-import { auth } from '@/lib/auth'
+import type { NextRequest } from 'next/server'
+import { getToken } from 'next-auth/jwt'
 import { createPreapproval } from '@/lib/mercadopago'
 
 const SUSCRIPTION_PRICE = process.env.SUSCRIPTION_PRICE
+const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || ''
 
-export async function POST() {
-  const session = await auth()
-  const email = session?.user?.email
+export async function POST(req: NextRequest) {
+  const token = await getToken({ req, secret: NEXTAUTH_SECRET })
+  const email = token?.email as string | undefined
   if (!email) return NextResponse.json({ error: 'No autenticado' }, { status: 401 })
 
   const APP_URL = process.env.APP_URL!
