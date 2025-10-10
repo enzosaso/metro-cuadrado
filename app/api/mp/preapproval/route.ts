@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
   const notification_url = `${APP_URL}/api/mp/webhook` // debe ser público en prod
 
-  const pre = await createPreapproval({
+  const initPoint = await createPreapproval({
     payer_email: mpEmail,
     reason,
     amount,
@@ -43,5 +43,5 @@ export async function POST(req: NextRequest) {
     external_reference: userId
   })
 
-  return NextResponse.json({ init_point: pre.init_point })
+  return NextResponse.json({ init_point: initPoint })
 }

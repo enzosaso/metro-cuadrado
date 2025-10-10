@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, redirect } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { WizardProvider } from '@/wizard/state'
 import Button from '@/components/ui/button'
@@ -71,7 +71,7 @@ function SubscriptionCTA() {
         throw new Error(data.error || 'No se pudo iniciar la suscripción')
       }
       const { init_point } = (await res.json()) as { init_point: string }
-      window.location.href = init_point
+      redirect(init_point)
     } catch {
       setError('Ocurrió un error')
     } finally {
@@ -83,7 +83,7 @@ function SubscriptionCTA() {
     <div className='w-[380px] max-w-sm rounded-2xl border bg-background p-6 shadow-sm'>
       <h1 className='text-2xl font-bold text-center'>Suscripción requerida</h1>
       <p className='mt-2 text-sm text-muted-foreground text-center'>
-        Ingresá el <strong>email de tu cuenta de Mercado Pago</strong> (debe coincidir al autorizar).
+        Ingresá el <strong>email de tu cuenta de Mercado Pago.</strong>
       </p>
 
       <div className='mt-4 space-y-2'>

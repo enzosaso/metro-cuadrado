@@ -1,28 +1,21 @@
 import { NextRequest } from 'next/server'
 import { getPreapproval } from '@/lib/mercadopago'
-import { setUserRoleById } from '@/lib/users'
+import { setUserRoleByEmail } from '@/lib/users'
 
 /**
  * Mercado Pago envía notificaciones con query params como:
  * ?type=preapproval&id=<preapproval_id>
  */
-export async function POST(req: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    const url = new URL(req.url)
-    const type = url.searchParams.get('type')
-    const id = url.searchParams.get('id')
+    const body: { data: { id: string }; type: string } = await request.json()
 
-    if (type !== 'preapproval' || !id) {
-      return new Response('ignored', { status: 200 })
-    }
+    if (body.type === 'subscription_preapproval') {
+      const preapproval = await getPreapproval(body.data.id)
 
-    const pre = await getPreapproval(id)
-    // Estados típicos: authorized, paused, cancelled
-    const status: string = pre.status
-    const userId = pre?.external_reference as string | undefined
-
-    if (status === 'authorized') {
-      if (userId) await setUserRoleById(userId, 'user')
+      if (preapproval.status === 'authorized') {
+        await setUserRoleByEmail(preapproval.payer_email!, 'user')
+      }
     }
 
     return new Response('ok', { status: 200 })
