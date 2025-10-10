@@ -15,7 +15,6 @@ export async function createPreapproval(opts: {
   frequency: number // ej: 1
   frequency_type: 'months' | 'days'
   back_url: string // vuelve el usuario
-  notification_url: string // webhook (opcional si lo seteás en el panel)
   external_reference: string
 }): Promise<string> {
   const suscription = await new PreApproval(mercadopago).create({

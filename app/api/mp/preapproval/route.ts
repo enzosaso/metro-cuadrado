@@ -30,8 +30,6 @@ export async function POST(req: NextRequest) {
   const frequency = 1
   const frequency_type = 'months' as const
 
-  const notification_url = `${APP_URL}/api/mp/webhook` // debe ser público en prod
-
   const initPoint = await createPreapproval({
     payer_email: mpEmail,
     reason,
@@ -39,7 +37,6 @@ export async function POST(req: NextRequest) {
     frequency,
     frequency_type,
     back_url: `${APP_URL}/wizard`,
-    notification_url,
     external_reference: userId
   })
 
