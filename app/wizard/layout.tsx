@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { WizardProvider } from '@/wizard/state'
 import Button from '@/components/ui/button'
 import { fmt } from '@/lib/calc'
+import Logo from '@/components/ui/logo'
 
 const SUBSCRIPTION_PRICE = process.env.NEXT_PUBLIC_SUBSCRIPTION_PRICE
 
@@ -35,7 +36,10 @@ export default function WizardLayout({ children }: { children: React.ReactNode }
         <header className='border-b'>
           <nav className='flex h-14 items-center justify-between'>
             <Link href='/' className='font-semibold'>
-              Metro Cuadrado
+              <div className='flex items-center gap-2'>
+                <Logo className='h-10 w-10' fill='black' />
+                <span>Metro Cuadrado</span>
+              </div>
             </Link>
             <div className='flex items-center gap-4'>
               <div className='hidden text-sm text-muted-foreground sm:block'>Calculadora de presupuesto</div>

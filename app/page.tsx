@@ -2,6 +2,7 @@
 import { useSession } from 'next-auth/react'
 import { CalculatorIcon, ArrowsPointingOutIcon, CubeIcon, HomeModernIcon } from '@heroicons/react/24/outline'
 import Button from '@/components/ui/button'
+import Logo from '@/components/ui/logo'
 
 export default function Home() {
   const { data: session, status } = useSession()
@@ -14,7 +15,7 @@ export default function Home() {
           {/* Top bar */}
           <div className='flex items-center justify-between'>
             <div className='flex items-center gap-2'>
-              <HomeModernIcon className='h-10 w-10 text-white' />
+              <Logo className='h-10 w-10' fill='white' />
               <div>
                 <p className='text-3xl font-semibold leading-tight md:text-4xl'>Metro</p>
                 <p className='-mt-1 text-2xl font-semibold leading-tight md:text-3xl'>Cuadrado</p>
