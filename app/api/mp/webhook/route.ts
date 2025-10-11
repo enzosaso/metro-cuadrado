@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { getPreapproval } from '@/lib/mercadopago'
-import { setUserRoleByEmail } from '@/lib/users'
+import { setUserRoleByPayerEmail } from '@/lib/users'
 
 /**
  * Mercado Pago envía notificaciones con query params como:
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
       const preapproval = await getPreapproval(body.data.id)
 
       if (preapproval.status === 'authorized') {
-        await setUserRoleByEmail(preapproval.payer_email!, 'user')
+        await setUserRoleByPayerEmail(preapproval.payer_email!, 'user')
       }
     }
 

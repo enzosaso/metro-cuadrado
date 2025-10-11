@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 import { getToken } from 'next-auth/jwt'
 import { createPreapproval } from '@/lib/mercadopago'
+import { setUserEmail } from '@/lib/users'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
@@ -18,6 +19,9 @@ export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => ({}))
   const mpEmailRaw: unknown = body?.mpEmail
   const mpEmail = typeof mpEmailRaw === 'string' ? mpEmailRaw.trim().toLowerCase() : ''
+
+  // set payerEmail to user email
+  await setUserEmail(email, mpEmail)
 
   // Validación mínima de email
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(mpEmail)) {
