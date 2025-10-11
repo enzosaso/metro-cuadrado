@@ -28,7 +28,8 @@ export async function createPreapproval(opts: {
         currency_id: 'ARS'
       },
       payer_email: opts.payer_email,
-      status: 'pending'
+      status: 'pending',
+      external_reference: opts.external_reference
     }
   })
   return suscription.init_point!
