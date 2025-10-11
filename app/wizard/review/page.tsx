@@ -11,8 +11,17 @@ export default function ReviewStep() {
   const { data: dbItems = [] } = useItems()
   const items = state.draft.selectedItems
   const lines = state.draft.lines
-  const t = totals(items, lines, state.draft.markupPercent)
+
   const [loading, setLoading] = useState(false)
+  const [includeMaterials, setIncludeMaterials] = useState(true)
+
+  const rawTotals = totals(items, lines, state.draft.markupPercent)
+  const t = {
+    ...rawTotals,
+    mat: includeMaterials ? rawTotals.mat : 0,
+    subtotal: includeMaterials ? rawTotals.subtotal : rawTotals.subtotal - rawTotals.mat,
+    total: includeMaterials ? rawTotals.total : rawTotals.total - rawTotals.mat
+  }
 
   const { parents } = useMemo(() => getParentsAndChild(dbItems), [dbItems])
 
@@ -36,7 +45,8 @@ export default function ReviewStep() {
         body: JSON.stringify({
           title: 'Presupuesto Metro Cuadrado',
           lines,
-          markupPercent: state.draft.markupPercent
+          markupPercent: state.draft.markupPercent,
+          includeMaterials
         })
       })
       if (!res.ok) throw new Error('Fallo la generación')
@@ -68,7 +78,7 @@ export default function ReviewStep() {
                 {group.map(it => {
                   const line = lines[it.id]!
                   const qty = Number(line.quantity || 0)
-                  const subMat = qty * (it.pu_materials ?? 0)
+                  const subMat = includeMaterials ? qty * (it.pu_materials ?? 0) : 0
                   const subLab = qty * (it.pu_labor ?? 0)
                   const sub = lineSubtotal(it, line)
                   return (
@@ -77,15 +87,19 @@ export default function ReviewStep() {
                       <div className='mt-1 text-xs text-muted-foreground'>
                         Unidad {it.unit?.toUpperCase() || '-'} · Cant. {line.quantity || '0'}
                       </div>
-                      <div className='mt-2 grid grid-cols-2 gap-2 text-xs'>
-                        <div className='rounded bg-muted px-2 py-1'>
-                          PU Mat: <strong>{it.pu_materials ? fmt(it.pu_materials) : '-'}</strong>
-                        </div>
+                      <div className={`mt-2 grid gap-2 text-xs ${includeMaterials ? 'grid-cols-2' : 'grid-cols-1'}`}>
+                        {includeMaterials && (
+                          <>
+                            <div className='rounded bg-muted px-2 py-1'>
+                              PU Mat: <strong>{it.pu_materials ? fmt(it.pu_materials) : '-'}</strong>
+                            </div>
+                            <div className='rounded px-2 py-1 border'>
+                              Subtot. Mat: <strong>{fmt(subMat)}</strong>
+                            </div>
+                          </>
+                        )}
                         <div className='rounded bg-muted px-2 py-1'>
                           PU MO: <strong>{it.pu_labor ? fmt(it.pu_labor) : '-'}</strong>
-                        </div>
-                        <div className='rounded px-2 py-1 border'>
-                          Subtot. Mat: <strong>{fmt(subMat)}</strong>
                         </div>
                         <div className='rounded px-2 py-1 border'>
                           Subtot. MO: <strong>{fmt(subLab)}</strong>
@@ -112,7 +126,7 @@ export default function ReviewStep() {
               <th className='py-2 px-3'>Ítem</th>
               <th className='py-2 px-3'>Cant.</th>
               <th className='py-2 px-3'>Unidad</th>
-              <th className='py-2 px-3 text-right'>Subtot. Materiales</th>
+              {includeMaterials && <th className='py-2 px-3 text-right'>Subtot. Materiales</th>}
               <th className='py-2 px-3 text-right'>Subtot. Mano de Obra</th>
               <th className='py-2 px-3 text-right'>Subtotal</th>
             </tr>
@@ -121,7 +135,7 @@ export default function ReviewStep() {
             {items.map((it, index) => {
               const line = lines[it.id]!
               const qty = Number(line.quantity || 0)
-              const subMat = qty * (it.pu_materials ?? 0)
+              const subMat = includeMaterials ? qty * (it.pu_materials ?? 0) : 0
               const subLab = qty * (it.pu_labor ?? 0)
               const sub = lineSubtotal(it, line)
               return (
@@ -135,7 +149,7 @@ export default function ReviewStep() {
                   </td>
                   <td className='py-2 px-3'>{line.quantity || '0'}</td>
                   <td className='py-2 px-3'>{it.unit}</td>
-                  <td className='py-2 px-3 text-right'>{fmt(subMat)}</td>
+                  {includeMaterials && <td className='py-2 px-3 text-right'>{fmt(subMat)}</td>}
                   <td className='py-2 px-3 text-right'>{fmt(subLab)}</td>
                   <td className='py-2 px-3 text-right'>{fmt(sub)}</td>
                 </tr>
@@ -145,12 +159,27 @@ export default function ReviewStep() {
         </table>
       </div>
 
+      <div className='mt-6 flex items-center gap-2'>
+        <input
+          id='toggle-mat'
+          type='checkbox'
+          checked={includeMaterials}
+          onChange={() => setIncludeMaterials(prev => !prev)}
+          className='h-4 w-4'
+        />
+        <label htmlFor='toggle-mat' className='text-sm'>
+          Incluir costos de materiales
+        </label>
+      </div>
+
       {/* Totales desktop/tablet */}
       <aside className='mt-4 rounded-2xl border p-4 hidden md:block'>
         <div className='flex flex-wrap items-center gap-4'>
-          <div>
-            Materiales: <strong>{fmt(t.mat)}</strong>
-          </div>
+          {includeMaterials && (
+            <div>
+              Materiales: <strong>{fmt(t.mat)}</strong>
+            </div>
+          )}
           <div>
             Mano de Obra: <strong>{fmt(t.mo)}</strong>
           </div>
@@ -173,7 +202,8 @@ export default function ReviewStep() {
             <div className='text-sm'>
               Total <strong className='text-base'>{fmt(t.total)}</strong>
               <div className='text-xs text-muted-foreground'>
-                Mat {fmt(t.mat)} · MO {fmt(t.mo)} · Ajuste {(t.markupPercent * 100).toFixed(0)}%
+                {includeMaterials && <>Mat {fmt(t.mat)} · </>}
+                MO {fmt(t.mo)} · Ajuste {(t.markupPercent * 100).toFixed(0)}%
               </div>
             </div>
             <div className='ml-auto flex gap-2'>

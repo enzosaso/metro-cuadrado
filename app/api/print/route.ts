@@ -8,17 +8,18 @@ export const dynamic = 'force-dynamic' // no cachear en build
 
 export async function POST(req: NextRequest) {
   try {
-    const { title, lines, markupPercent } = (await req.json()) as {
+    const { title, lines, markupPercent, includeMaterials } = (await req.json()) as {
       title: string
       lines: Record<string, LineDraft>
       markupPercent: string
+      includeMaterials: boolean
     }
 
     // Filtrar solo ítems presentes
     const selectedItems = Object.values(lines).map(l => l.item)
 
     const pdf = await renderToBuffer(
-      QuoteDoc({ title: title || 'Presupuesto', items: selectedItems, lines, markupPercent })
+      QuoteDoc({ title: title || 'Presupuesto', items: selectedItems, lines, markupPercent, includeMaterials })
     )
 
     // Convert Buffer to Uint8Array and then to Blob for proper Response handling

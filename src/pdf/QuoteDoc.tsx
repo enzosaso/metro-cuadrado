@@ -33,12 +33,19 @@ export interface QuoteDocProps {
   items: Item[]
   lines: Record<string, LineDraft>
   markupPercent: string
+  includeMaterials: boolean
 }
 
-export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDocProps) {
+export default function QuoteDoc({ title, items, lines, markupPercent, includeMaterials }: QuoteDocProps) {
   const chosen = items.filter(i => lines[i.id])
   const groups = groupByParent(chosen, lines)
-  const t = totals(chosen, lines, markupPercent)
+  const rawTotals = totals(chosen, lines, markupPercent)
+  const t = {
+    ...rawTotals,
+    mat: includeMaterials ? rawTotals.mat : 0,
+    subtotal: includeMaterials ? rawTotals.subtotal : rawTotals.subtotal - rawTotals.mat,
+    total: includeMaterials ? rawTotals.total : rawTotals.total - rawTotals.mat
+  }
 
   return (
     <Document>
@@ -55,7 +62,7 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
             <Text style={[styles.th, { flexBasis: '36%' }]}>Ítem</Text>
             <Text style={[styles.th, { flexBasis: '10%' }]}>Cant.</Text>
             <Text style={[styles.th, { flexBasis: '10%' }]}>Unidad</Text>
-            <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Materiales</Text>
+            {includeMaterials && <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Materiales</Text>}
             <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Mano de Obra</Text>
             <Text style={[styles.th, { flexBasis: '12%' }, styles.right]}>Subtotal</Text>
           </View>
@@ -75,13 +82,17 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
                   const qty = Number(line.quantity || 0)
                   const subMat = qty * (it.pu_materials ?? 0)
                   const subLab = qty * (it.pu_labor ?? 0)
-                  const sub = lineSubtotal(it, line)
+                  const sub = includeMaterials ? lineSubtotal(it, line) : subLab
                   return (
                     <View key={it.id} style={styles.tr}>
                       <Text style={[styles.td, { flexBasis: '36%' }]}>{it.chapter}</Text>
                       <Text style={[styles.td, { flexBasis: '10%' }]}>{line.quantity || '0'}</Text>
                       <Text style={[styles.td, { flexBasis: '10%' }]}>{it.unit}</Text>
-                      <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>{subMat ? fmt(subMat) : '-'}</Text>
+                      {includeMaterials && (
+                        <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>
+                          {subMat ? fmt(subMat) : '-'}
+                        </Text>
+                      )}
                       <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>{subLab ? fmt(subLab) : '-'}</Text>
                       <Text style={[styles.td, styles.right, { flexBasis: '12%' }]}>{fmt(sub)}</Text>
                     </View>
@@ -93,14 +104,18 @@ export default function QuoteDoc({ title, items, lines, markupPercent }: QuoteDo
         </View>
 
         <View style={styles.totals}>
-          <View style={styles.row}>
-            <Text>Materiales</Text>
-            <Text>{fmt(t.mat)}</Text>
-          </View>
-          <View style={styles.row}>
-            <Text>Mano de Obra</Text>
-            <Text>{fmt(t.mo)}</Text>
-          </View>
+          {includeMaterials && (
+            <View style={styles.row}>
+              <Text>Materiales</Text>
+              <Text>{fmt(t.mat)}</Text>
+            </View>
+          )}
+          {includeMaterials && (
+            <View style={styles.row}>
+              <Text>Mano de Obra</Text>
+              <Text>{fmt(t.mo)}</Text>
+            </View>
+          )}
           <View style={styles.row}>
             <Text>Subtotal</Text>
             <Text>{fmt(t.subtotal)}</Text>
