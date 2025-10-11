@@ -39,6 +39,7 @@ export interface QuoteDocProps {
 export default function QuoteDoc({ title, items, lines, markupPercent, includeMaterials }: QuoteDocProps) {
   const chosen = items.filter(i => lines[i.id])
   const groups = groupByParent(chosen, lines)
+
   const rawTotals = totals(chosen, lines, markupPercent)
   const t = {
     ...rawTotals,
@@ -68,21 +69,30 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
           </View>
 
           {Object.entries(groups).map(([parent, group]) => {
-            const groupSubtotal = group.reduce((acc, it) => acc + lineSubtotal(it, lines[it.id]!), 0)
+            // subtotal de grupo dinámico
+            const groupSubtotal = group.reduce((acc, it) => {
+              const line = lines[it.id]!
+              const qty = Number(line.quantity || 0)
+              const sub = includeMaterials ? lineSubtotal(it, line) : qty * (it.pu_labor ?? 0)
+              return acc + sub
+            }, 0)
+
             return (
               <React.Fragment key={parent}>
-                {/* Encabezado de sección */}
+                {/* Encabezado de grupo */}
                 <View style={[styles.tr, { backgroundColor: '#fafafa' }]}>
                   <Text style={[styles.th, { flexBasis: '88%' }]}>{parent}</Text>
                   <Text style={[styles.th, styles.right, { flexBasis: '12%' }]}>{fmt(groupSubtotal)}</Text>
                 </View>
-                {/* Filas del grupo */}
+
+                {/* Filas de ítems */}
                 {group.map(it => {
                   const line = lines[it.id]!
                   const qty = Number(line.quantity || 0)
                   const subMat = qty * (it.pu_materials ?? 0)
                   const subLab = qty * (it.pu_labor ?? 0)
                   const sub = includeMaterials ? lineSubtotal(it, line) : subLab
+
                   return (
                     <View key={it.id} style={styles.tr}>
                       <Text style={[styles.td, { flexBasis: '36%' }]}>{it.chapter}</Text>

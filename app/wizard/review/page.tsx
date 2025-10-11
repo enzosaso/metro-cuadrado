@@ -65,7 +65,12 @@ export default function ReviewStep() {
       {/* MOBILE: siempre expandido, sin accordions */}
       <div className='mt-4 space-y-4 md:hidden'>
         {Object.entries(groups).map(([parent, group]) => {
-          const groupSubtotal = group.reduce((acc, it) => acc + lineSubtotal(it, lines[it.id]!), 0)
+          const groupSubtotal = group.reduce((acc, it) => {
+            const line = lines[it.id]!
+            const qty = Number(line.quantity || 0)
+            const sub = includeMaterials ? lineSubtotal(it, line) : qty * (it.pu_labor ?? 0)
+            return acc + sub
+          }, 0)
           return (
             <section key={parent} className='rounded-2xl border'>
               <header className='flex items-center justify-between gap-2 px-3 py-2 border-b bg-muted/40 rounded-t-2xl'>
@@ -80,7 +85,9 @@ export default function ReviewStep() {
                   const qty = Number(line.quantity || 0)
                   const subMat = includeMaterials ? qty * (it.pu_materials ?? 0) : 0
                   const subLab = qty * (it.pu_labor ?? 0)
-                  const sub = lineSubtotal(it, line)
+                  const sub = includeMaterials
+                    ? lineSubtotal(it, line)
+                    : Number(line.quantity || 0) * (it.pu_labor ?? 0)
                   return (
                     <div key={it.id} className='rounded-xl border p-3'>
                       <div className='text-sm font-medium'>{it.chapter}</div>
@@ -137,7 +144,7 @@ export default function ReviewStep() {
               const qty = Number(line.quantity || 0)
               const subMat = includeMaterials ? qty * (it.pu_materials ?? 0) : 0
               const subLab = qty * (it.pu_labor ?? 0)
-              const sub = lineSubtotal(it, line)
+              const sub = includeMaterials ? lineSubtotal(it, line) : Number(line.quantity || 0) * (it.pu_labor ?? 0)
               return (
                 <tr key={it.id} className={index === items.length - 1 ? '' : 'border-b'}>
                   <td className='py-2 px-3'>
