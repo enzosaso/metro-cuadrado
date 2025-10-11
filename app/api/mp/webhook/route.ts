@@ -8,10 +8,12 @@ import { setUserRoleByPayerEmail } from '@/lib/users'
  */
 export async function POST(request: NextRequest) {
   try {
-    const body: { data: { id: string }; type: string } = await request.json()
+    const url = new URL(request.url)
+    const type = url.searchParams.get('type')
+    const id = url.searchParams.get('id')
 
-    if (body.type === 'subscription_preapproval') {
-      const preapproval = await getPreapproval(body.data.id)
+    if (type === 'subscription_preapproval') {
+      const preapproval = await getPreapproval(id!)
 
       if (preapproval.status === 'authorized') {
         await setUserRoleByPayerEmail(preapproval.payer_email!, 'user')
