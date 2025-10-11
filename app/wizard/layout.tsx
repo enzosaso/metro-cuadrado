@@ -1,7 +1,7 @@
 'use client'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { useRouter, redirect } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { WizardProvider } from '@/wizard/state'
 import Button from '@/components/ui/button'
@@ -71,7 +71,7 @@ function SubscriptionCTA() {
         throw new Error(data.error || 'No se pudo iniciar la suscripción')
       }
       const { init_point } = (await res.json()) as { init_point: string }
-      redirect(init_point)
+      window.location.href = init_point
     } catch {
       setError('Ocurrió un error')
     } finally {
