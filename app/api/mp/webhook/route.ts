@@ -11,10 +11,12 @@ export async function POST(request: NextRequest) {
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
     const id = url.searchParams.get('id')
+    console.log({ url })
+    console.log({ type, id })
 
     if (type === 'subscription_preapproval') {
       const preapproval = await getPreapproval(id!)
-
+      console.log({ preapproval })
       if (preapproval.status === 'authorized') {
         await setUserRoleByPayerEmail(preapproval.payer_email!, 'user')
       }
