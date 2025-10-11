@@ -16,11 +16,17 @@ export default function ReviewStep() {
   const [includeMaterials, setIncludeMaterials] = useState(true)
 
   const rawTotals = totals(items, lines, state.draft.markupPercent)
+  const mo = rawTotals.mo
+  const mat = includeMaterials ? rawTotals.mat : 0
+  const subtotal = mo + mat
+  const markup = subtotal * rawTotals.markupPercent
+  const total = subtotal + markup
+
   const t = {
     ...rawTotals,
-    mat: includeMaterials ? rawTotals.mat : 0,
-    subtotal: includeMaterials ? rawTotals.subtotal : rawTotals.subtotal - rawTotals.mat,
-    total: includeMaterials ? rawTotals.total : rawTotals.total - rawTotals.mat
+    mat,
+    subtotal,
+    total
   }
 
   const { parents } = useMemo(() => getParentsAndChild(dbItems), [dbItems])

@@ -41,11 +41,17 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
   const groups = groupByParent(chosen, lines)
 
   const rawTotals = totals(chosen, lines, markupPercent)
+  const mo = rawTotals.mo
+  const mat = includeMaterials ? rawTotals.mat : 0
+  const subtotal = mo + mat
+  const markup = subtotal * rawTotals.markupPercent
+  const total = subtotal + markup
+
   const t = {
     ...rawTotals,
-    mat: includeMaterials ? rawTotals.mat : 0,
-    subtotal: includeMaterials ? rawTotals.subtotal : rawTotals.subtotal - rawTotals.mat,
-    total: includeMaterials ? rawTotals.total : rawTotals.total - rawTotals.mat
+    mat,
+    subtotal,
+    total
   }
 
   return (
