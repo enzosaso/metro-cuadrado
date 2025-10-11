@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   try {
     const url = new URL(request.url)
     const type = url.searchParams.get('type')
-    const id = url.searchParams.get('id')
+    const id = url.searchParams.get('data.id')
     console.log({ url })
     console.log({ type, id })
 
