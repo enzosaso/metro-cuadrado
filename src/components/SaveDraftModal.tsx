@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { DocumentCheckIcon } from '@heroicons/react/24/solid'
+import { DocumentCheckIcon, PlusIcon, ArrowLeftIcon } from '@heroicons/react/24/solid'
 import { useWizard } from '@/wizard/state'
 import Button from '@/components/ui/button'
 
@@ -77,20 +77,48 @@ export default function SaveDraftModal() {
     }
   }
 
+  const handleCreateNew = () => {
+    setOpen(true)
+    dispatch({ type: 'SET_NAME', name: '' })
+    dispatch({ type: 'SET_ID', id: '' })
+    dispatch({ type: 'SET_CREATED_AT', createdAt: new Date() })
+    dispatch({ type: 'SET_UPDATED_AT', updatedAt: new Date() })
+  }
+
   return (
     <>
-      <Button
-        onClick={() => {
-          if (state.id) handleUpdate()
-          else setOpen(true)
-        }}
-        styleType='primary'
-        className='px-4'
-        disabled={saving}
-      >
-        <DocumentCheckIcon className='w-4 h-4 mr-2 inline-block' />
-        {saving ? 'Guardando…' : state.id ? `Actualizar${state.name ? ` (${state.name})` : ''}` : 'Guardar borrador'}
-      </Button>
+      <div className='flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 w-full'>
+        <Button
+          href='/wizard'
+          styleType='tertiary'
+          className='flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 text-sm sm:text-base'
+        >
+          <ArrowLeftIcon className='w-4 h-4' />
+          Volver al listado
+        </Button>
+
+        <Button
+          onClick={() => (state.id ? handleUpdate() : setOpen(true))}
+          styleType='primary'
+          className='flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 text-sm sm:text-base font-semibold'
+          disabled={saving}
+        >
+          <DocumentCheckIcon className='w-4 h-4' />
+          {saving ? 'Guardando…' : state.id ? `Actualizar${state.name ? ` (${state.name})` : ''}` : 'Guardar borrador'}
+        </Button>
+
+        {state.id && (
+          <Button
+            onClick={handleCreateNew}
+            styleType='tertiary'
+            className='flex items-center justify-center gap-2 w-full sm:w-auto px-4 py-2 text-sm sm:text-base'
+            disabled={saving}
+          >
+            <PlusIcon className='w-4 h-4' />
+            Crear nuevo borrador
+          </Button>
+        )}
+      </div>
 
       {open && (
         <div className='fixed inset-0 bg-black/30 flex items-center justify-center z-50'>
