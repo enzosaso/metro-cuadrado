@@ -38,6 +38,7 @@ export default function SaveDraftModal() {
       }
 
       setSuccess(true)
+      alert('Borrador guardado correctamente')
       setOpen(false)
       dispatch({ type: 'SET_NAME', name: state.name })
       dispatch({ type: 'SET_ID', id })
@@ -70,6 +71,7 @@ export default function SaveDraftModal() {
 
       dispatch({ type: 'SET_UPDATED_AT', updatedAt: new Date() })
       setSuccess(true)
+      alert('Borrador actualizado correctamente')
     } catch (e: unknown) {
       setError(e instanceof Error ? e.message : 'Error desconocido')
     } finally {
