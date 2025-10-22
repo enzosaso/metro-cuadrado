@@ -53,7 +53,7 @@ export default function WizardEntry() {
   }
 
   return (
-    <div className='w-[400px] max-w-sm rounded-2xl border bg-background p-6 mt-12 shadow-sm mx-auto flex flex-col items-center'>
+    <div className='max-w-sm rounded-2xl border bg-background p-6 mt-12 shadow-sm mx-auto flex flex-col items-center'>
       <h1 className='text-2xl font-bold'>Presupuestos guardados</h1>
       <p className='text-sm text-muted-foreground mt-1'>Elegí un borrador o creá uno nuevo.</p>
 
