@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { fmt, lineSubtotal, totals } from '@/lib/calc'
 import { useWizard } from '@/wizard/state'
 import Button from '@/components/ui/button'
+import SaveDraftModal from '@/components/SaveDraftModal'
 import { getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
 import { useItems } from '@/hooks/useItems'
 
@@ -150,13 +151,20 @@ export default function EditStep() {
         </div>
       </aside>
 
-      <div className='mt-6 flex justify-between'>
+      <div className='mt-6'>
+        <SaveDraftModal />
+      </div>
+
+      <div className='mt-6 flex flex-wrap justify-between gap-2'>
         <Button href='/wizard/select' styleType='tertiary'>
           Volver
         </Button>
-        <Button href={canNext ? '/wizard/review' : '#'} styleType='secondary' disabled={!canNext}>
-          Continuar
-        </Button>
+
+        <div className='flex gap-2'>
+          <Button href={canNext ? '/wizard/review' : '#'} styleType='secondary' disabled={!canNext}>
+            Continuar
+          </Button>
+        </div>
       </div>
     </div>
   )

@@ -1,13 +1,12 @@
 'use client'
 import { createContext, useContext, useEffect, useReducer } from 'react'
-import type { BudgetDraft, LineDraft, Item } from '@/types'
+import type { PersistedBudgetDraft, LineDraft, Item } from '@/types'
 import { sortByItemCode } from '@/lib/wizard-helpers'
 
 type Step = 'select' | 'edit' | 'review'
 
-interface WizardState {
+interface WizardState extends PersistedBudgetDraft {
   step: Step
-  draft: BudgetDraft
 }
 
 type Action =
@@ -16,9 +15,20 @@ type Action =
   | { type: 'SET_LINE'; item: Item; patch: Partial<LineDraft> }
   | { type: 'SET_MARKUP'; value: string }
   | { type: 'RESET' }
+  | { type: 'HYDRATE'; next: WizardState }
+  | { type: 'SET_NAME'; name: string }
+  | { type: 'SET_CREATED_AT'; createdAt: Date }
+  | { type: 'SET_UPDATED_AT'; updatedAt: Date }
+  | { type: 'SET_ID'; id: string }
+  | { type: 'SET_USER_ID'; userId: string }
 
 const initial: WizardState = {
   step: 'select',
+  name: '',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  id: '',
+  userId: '',
   draft: { selectedItems: [], lines: {}, markupPercent: '0.10' }
 }
 
@@ -47,8 +57,20 @@ function reducer(state: WizardState, action: Action): WizardState {
     }
     case 'SET_MARKUP':
       return { ...state, draft: { ...state.draft, markupPercent: action.value } }
+    case 'SET_NAME':
+      return { ...state, name: action.name }
+    case 'SET_CREATED_AT':
+      return { ...state, createdAt: action.createdAt }
+    case 'SET_UPDATED_AT':
+      return { ...state, updatedAt: action.updatedAt }
+    case 'SET_ID':
+      return { ...state, id: action.id }
+    case 'SET_USER_ID':
+      return { ...state, userId: action.userId }
     case 'RESET':
       return initial
+    case 'HYDRATE':
+      return action.next
     default:
       return state
   }
@@ -66,6 +88,18 @@ function useWizardInternal() {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state))
   }, [state])
+
+  useEffect(() => {
+    const handleHydrate = () => {
+      const raw = localStorage.getItem(STORAGE_KEY)
+      if (!raw) return
+      const next = JSON.parse(raw) as WizardState
+      dispatch({ type: 'HYDRATE', next })
+    }
+
+    window.addEventListener('wizard-storage-update', handleHydrate)
+    return () => window.removeEventListener('wizard-storage-update', handleHydrate)
+  }, [])
 
   return { state, dispatch }
 }

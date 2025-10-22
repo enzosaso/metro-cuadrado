@@ -51,3 +51,7 @@ export function db() {
 export function usersCol() {
   return db().collection('mc_users')
 }
+
+export function draftsCol() {
+  return db().collection('drafts')
+}

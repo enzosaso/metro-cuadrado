@@ -1,8 +1,9 @@
 'use client'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
+import { useRouter, usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { ClipboardDocumentListIcon, PencilSquareIcon, DocumentTextIcon } from '@heroicons/react/24/solid'
 import { WizardProvider } from '@/wizard/state'
 import Button from '@/components/ui/button'
 import { fmt } from '@/lib/calc'
@@ -132,18 +133,37 @@ function SubscriptionCTA() {
 }
 
 function Stepper() {
+  const pathname = usePathname()
+
   const steps = [
-    { href: '/wizard/select', label: '1. Rubros' },
-    { href: '/wizard/edit', label: '2. Cantidades' },
-    { href: '/wizard/review', label: '3. Resumen' }
+    { href: '/wizard/select', label: 'Rubros', icon: ClipboardDocumentListIcon },
+    { href: '/wizard/edit', label: 'Cantidades', icon: PencilSquareIcon },
+    { href: '/wizard/review', label: 'Resumen', icon: DocumentTextIcon }
   ]
+
   return (
-    <ol className='grid grid-cols-3 gap-2 text-sm'>
-      {steps.map(s => (
-        <Link href={s.href} className='inline-block font-semibold' key={s.href}>
-          <li className='rounded-xl border border-secondary bg-secondary p-3 text-center text-primary'>{s.label}</li>
-        </Link>
-      ))}
+    <ol className='flex flex-wrap justify-between gap-2 sm:gap-4'>
+      {steps.map(({ href, label, icon: Icon }, i) => {
+        const isActive = pathname === href
+        const isCompleted = steps.findIndex(s => s.href === pathname) > i
+
+        return (
+          <Link key={href} href={href} className='flex-1'>
+            <li
+              className={`flex items-center justify-center gap-2 rounded-xl border p-3 sm:p-4 text-sm sm:text-base font-medium transition-colors ${
+                isActive
+                  ? 'border-blue-500 bg-blue-50 text-blue-700'
+                  : isCompleted
+                  ? 'border-green-500 bg-green-50 text-green-700'
+                  : 'border-gray-300 bg-white text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              <Icon className='h-5 w-5 sm:h-6 sm:w-6' />
+              <span className='truncate'>{`${i + 1}. ${label}`}</span>
+            </li>
+          </Link>
+        )
+      })}
     </ol>
   )
 }
