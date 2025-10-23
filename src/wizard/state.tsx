@@ -92,7 +92,7 @@ function useWizardInternal() {
   useEffect(() => {
     const handleHydrate = () => {
       const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return
+      if (!raw) return dispatch({ type: 'RESET' })
       const next = JSON.parse(raw) as WizardState
       dispatch({ type: 'HYDRATE', next })
     }

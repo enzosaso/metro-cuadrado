@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { TrashIcon } from '@heroicons/react/24/outline'
 import type { PersistedBudgetDraft } from '@/types'
 import Button from '@/components/ui/button'
 
@@ -49,7 +50,20 @@ export default function WizardEntry() {
 
   const createNew = () => {
     localStorage.removeItem('mc_wizard_v1')
+    window.dispatchEvent(new Event('wizard-storage-update'))
     router.push('/wizard/select')
+  }
+
+  const deleteDraft = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    if (!confirm('¿Estás seguro de eliminar este borrador?')) return
+    try {
+      const res = await fetch(`/api/drafts?id=${id}`, { method: 'DELETE' })
+      if (!res.ok) throw new Error('Error al eliminar borrador')
+      setDraftsDb(draftsDb.filter(d => d.id !== id))
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : 'Error desconocido')
+    }
   }
 
   return (
@@ -67,9 +81,14 @@ export default function WizardEntry() {
                 className='border rounded-xl px-3 py-2 cursor-pointer hover:bg-muted transition-colors'
                 onClick={() => loadDraft(d)}
               >
-                <div className='font-medium'>{d.name}</div>
-                <div className='text-xs text-muted-foreground'>
-                  Última edición: {date ? date.toLocaleString() : 'Fecha desconocida'}
+                <div className='flex items-center justify-between'>
+                  <div className='flex flex-col mr-2'>
+                    <div className='font-medium'>{d.name}</div>
+                    <div className='text-xs text-muted-foreground'>
+                      Última edición: {date ? date.toLocaleString() : 'Fecha desconocida'}
+                    </div>
+                  </div>
+                  <TrashIcon className='ml-2 h-4 w-4 text-red-600' onClick={e => deleteDraft(e, d.id)} />
                 </div>
               </li>
             )
