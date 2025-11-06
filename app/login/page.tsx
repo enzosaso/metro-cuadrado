@@ -12,9 +12,16 @@ function LoginForm() {
   const [mode, setMode] = useState<'login' | 'register'>('login')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirm, setConfirm] = useState('')
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(params.get('error'))
+
+  const resetAuthState = () => {
+    setPassword('')
+    setConfirm('')
+    setErrorMsg(null)
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -28,39 +35,43 @@ function LoginForm() {
         redirect: false
       })
       setLoading(false)
-      if (res?.ok) {
-        router.push('/wizard')
-      } else {
-        setErrorMsg('Usuario o contraseña incorrectos')
-      }
-    } else {
-      // Registro
-      try {
-        const res = await fetch('/api/register', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ email, password, name })
-        })
-        const data = await res.json()
-        if (!res.ok) {
-          throw new Error(data.error || 'Error en el registro')
-        }
-        // Autologin después de registro
-        const loginRes = await signIn('credentials', {
-          email,
-          password,
-          redirect: false
-        })
-        setLoading(false)
-        if (loginRes?.ok) {
-          router.push('/wizard')
-        } else {
-          setErrorMsg('Usuario registrado pero fallo el login')
-        }
-      } catch (err) {
-        setLoading(false)
-        setErrorMsg(err instanceof Error ? err.message : 'Error en el registro')
-      }
+      if (res?.ok) router.push('/wizard')
+      else setErrorMsg('Usuario o contraseña incorrectos')
+      return
+    }
+
+    // Registro
+    if (password.length < 8) {
+      setLoading(false)
+      setErrorMsg('La contraseña debe tener al menos 8 caracteres')
+      return
+    }
+    if (password !== confirm) {
+      setLoading(false)
+      setErrorMsg('Las contraseñas no coinciden')
+      return
+    }
+
+    try {
+      const res = await fetch('/api/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, name })
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Error en el registro')
+
+      const loginRes = await signIn('credentials', {
+        email,
+        password,
+        redirect: false
+      })
+      setLoading(false)
+      if (loginRes?.ok) router.push('/wizard')
+      else setErrorMsg('Usuario registrado pero falló el login')
+    } catch (err) {
+      setLoading(false)
+      setErrorMsg(err instanceof Error ? err.message : 'Error en el registro')
     }
   }
 
@@ -118,11 +129,28 @@ function LoginForm() {
             />
           </div>
 
+          {mode === 'register' && (
+            <div className='space-y-1'>
+              <label className='text-sm' htmlFor='confirm'>
+                Confirmar contraseña
+              </label>
+              <input
+                id='confirm'
+                type='password'
+                autoComplete='new-password'
+                className='w-full rounded-xl border px-3 py-2'
+                value={confirm}
+                onChange={e => setConfirm(e.target.value)}
+                required
+              />
+            </div>
+          )}
+
           {errorMsg && (
             <div className='rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700'>{errorMsg}</div>
           )}
 
-          <Button type='submit' loading={loading} className='w-full'>
+          <Button type='submit' loading={loading} className='w-full' disabled={loading}>
             {loading
               ? mode === 'login'
                 ? 'Ingresando…'
@@ -139,7 +167,10 @@ function LoginForm() {
           </Link>
           <button
             type='button'
-            onClick={() => setMode(mode === 'login' ? 'register' : 'login')}
+            onClick={() => {
+              setMode(mode === 'login' ? 'register' : 'login')
+              resetAuthState()
+            }}
             className='text-primary hover:underline cursor-pointer'
           >
             {mode === 'login' ? 'Crear cuenta' : 'Ya tengo cuenta'}
