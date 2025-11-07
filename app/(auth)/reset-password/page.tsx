@@ -1,11 +1,24 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
 import Button from '@/components/ui/button'
 
 export default function ResetPasswordPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className='flex items-center justify-center min-h-screen'>
+          <div className='animate-pulse'>Cargando...</div>
+        </div>
+      }
+    >
+      <ResetPasswordForm />
+    </Suspense>
+  )
+}
+
+function ResetPasswordForm() {
   const params = useSearchParams()
   const router = useRouter()
   const token = params.get('token') ?? ''
