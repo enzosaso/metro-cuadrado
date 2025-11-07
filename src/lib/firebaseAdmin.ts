@@ -1,6 +1,6 @@
 // src/lib/firebaseAdmin.ts
 import { cert, getApps, initializeApp } from 'firebase-admin/app'
-import { getFirestore } from 'firebase-admin/firestore'
+import { getFirestore, Timestamp } from 'firebase-admin/firestore'
 
 /**
  * Inicializa Firebase Admin usando variables de entorno.
@@ -55,3 +55,5 @@ export function usersCol() {
 export function draftsCol() {
   return db().collection('drafts')
 }
+
+export { Timestamp }

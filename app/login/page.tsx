@@ -16,6 +16,7 @@ function LoginForm() {
   const [name, setName] = useState('')
   const [loading, setLoading] = useState(false)
   const [errorMsg, setErrorMsg] = useState<string | null>(params.get('error'))
+  const resetOk = params.get('reset') === 'ok' // ← opcional
 
   const resetAuthState = () => {
     setPassword('')
@@ -83,6 +84,12 @@ function LoginForm() {
           {mode === 'login' ? 'Iniciá sesión para continuar' : 'Creá tu cuenta para empezar'}
         </p>
 
+        {resetOk && (
+          <div className='mt-3 rounded-xl border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700'>
+            Contraseña restablecida. Ingresá con la nueva.
+          </div>
+        )}
+
         <form onSubmit={onSubmit} className='mt-6 space-y-3'>
           {mode === 'register' && (
             <div className='space-y-1'>
@@ -120,7 +127,7 @@ function LoginForm() {
             </label>
             <input
               id='password'
-              type='password'
+              type={mode === 'login' ? 'password' : 'text'}
               autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
               className='w-full rounded-xl border px-3 py-2'
               value={password}
@@ -129,6 +136,15 @@ function LoginForm() {
             />
           </div>
 
+          {/* Enlace "Olvidaste tu contraseña" solo en login */}
+          {mode === 'login' && (
+            <div className='-mt-2'>
+              <Link href='/forgot-password' className='text-sm text-primary hover:underline'>
+                ¿Olvidaste tu contraseña?
+              </Link>
+            </div>
+          )}
+
           {mode === 'register' && (
             <div className='space-y-1'>
               <label className='text-sm' htmlFor='confirm'>
@@ -136,7 +152,7 @@ function LoginForm() {
               </label>
               <input
                 id='confirm'
-                type='password'
+                type='text'
                 autoComplete='new-password'
                 className='w-full rounded-xl border px-3 py-2'
                 value={confirm}
