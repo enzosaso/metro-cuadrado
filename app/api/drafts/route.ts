@@ -25,14 +25,14 @@ export async function POST(req: NextRequest) {
   const userId = token?.sub
   if (!userId) return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
 
-  const { name, draft, id, createdAt, updatedAt } = await req.json()
+  const { name, draft, id, createdAt, updatedAt, pdfHeader, pdfFooter } = await req.json()
   if (!name || !draft) return NextResponse.json({ error: 'Datos inválidos' }, { status: 400 })
 
   if (createdAt === updatedAt) {
-    await draftsCol().doc(id).set({ id, name, userId, draft, updatedAt, createdAt })
+    await draftsCol().doc(id).set({ id, name, userId, draft, updatedAt, createdAt, pdfHeader, pdfFooter })
     return NextResponse.json({ ok: true, id })
   } else {
-    await draftsCol().doc(id).update({ name, draft, updatedAt })
+    await draftsCol().doc(id).update({ name, draft, updatedAt, pdfHeader, pdfFooter })
     return NextResponse.json({ ok: true, id })
   }
 }

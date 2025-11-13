@@ -25,6 +25,20 @@ export interface BudgetDraft {
   markupPercent: string // markup decimal como string (ej: "0.10")
 }
 
+export interface PdfHeader {
+  title: 'Presupuesto de obra' | 'Remodelación' | 'Mantenimiento'
+  date: string // yyyy-mm-dd
+  client: string
+  address: string
+  timeEstimate: string
+}
+
+export interface PdfFooter {
+  issuer: string
+  address?: string
+  contact?: string
+}
+
 export interface PersistedBudgetDraft {
   name: string
   createdAt: Date
@@ -32,4 +46,6 @@ export interface PersistedBudgetDraft {
   id: string
   userId: string
   draft: BudgetDraft
+  pdfHeader: PdfHeader
+  pdfFooter: PdfFooter
 }

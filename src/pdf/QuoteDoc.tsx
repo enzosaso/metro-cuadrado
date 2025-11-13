@@ -1,6 +1,6 @@
 import React from 'react'
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer'
-import type { Item, LineDraft } from '@/types'
+import type { Item, LineDraft, PdfHeader, PdfFooter } from '@/types'
 import { lineSubtotal, totals, fmt } from '@/lib/calc'
 
 const groupByParent = (items: Item[], lines: Record<string, LineDraft>) => {
@@ -18,25 +18,28 @@ const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 10, fontFamily: 'Helvetica' },
   header: { marginBottom: 12 },
   h1: { fontSize: 18, fontWeight: 700 },
-  meta: { color: '#666', marginTop: 4 },
+  meta: { color: '#444', marginTop: 4, lineHeight: 1.4 },
   table: { marginTop: 12, borderWidth: 1, borderColor: '#ddd' },
   tr: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee' },
   th: { padding: 6, fontWeight: 700, backgroundColor: '#f7f7f7', flexGrow: 1 },
   td: { padding: 6, flexGrow: 1 },
   right: { textAlign: 'right' },
   totals: { marginTop: 12, gap: 4 },
-  row: { flexDirection: 'row', justifyContent: 'space-between' }
+  row: { flexDirection: 'row', justifyContent: 'space-between' },
+  footerWrap: { marginTop: 18, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#ddd' },
+  small: { fontSize: 9, color: '#555' }
 })
 
 export interface QuoteDocProps {
-  title: string
   items: Item[]
   lines: Record<string, LineDraft>
   markupPercent: string
   includeMaterials: boolean
+  header: PdfHeader
+  footer: PdfFooter
 }
 
-export default function QuoteDoc({ title, items, lines, markupPercent, includeMaterials }: QuoteDocProps) {
+export default function QuoteDoc({ items, lines, markupPercent, includeMaterials, header, footer }: QuoteDocProps) {
   const chosen = items.filter(i => lines[i.id])
   const groups = groupByParent(chosen, lines)
 
@@ -46,24 +49,26 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
   const subtotal = mo + mat
   const markup = subtotal * rawTotals.markupPercent
   const total = subtotal + markup
-
-  const t = {
-    ...rawTotals,
-    mat,
-    subtotal,
-    total
-  }
+  const t = { ...rawTotals, mat, subtotal, total }
 
   return (
     <Document>
       <Page size='A4' style={styles.page}>
+        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.h1}>Presupuesto</Text>
+          <Text style={styles.h1}>{header.title}</Text>
           <Text style={styles.meta}>
-            {title} · {new Date().toLocaleDateString('es-AR')}
+            Fecha: {header.date}
+            {'\n'}
+            Cliente: {header.client || '-'}
+            {'\n'}
+            Dirección de la obra: {header.address || '-'}
+            {'\n'}
+            Tiempo estimado de obra: {header.timeEstimate || '-'}
           </Text>
         </View>
 
+        {/* Table */}
         <View style={styles.table}>
           <View style={styles.tr}>
             <Text style={[styles.th, { flexBasis: '36%' }]}>Ítem</Text>
@@ -75,7 +80,6 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
           </View>
 
           {Object.entries(groups).map(([parent, group]) => {
-            // subtotal de grupo dinámico
             const groupSubtotal = group.reduce((acc, it) => {
               const line = lines[it.id]!
               const qty = Number(line.quantity || 0)
@@ -85,13 +89,11 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
 
             return (
               <React.Fragment key={parent}>
-                {/* Encabezado de grupo */}
                 <View style={[styles.tr, { backgroundColor: '#fafafa' }]}>
                   <Text style={[styles.th, { flexBasis: '88%' }]}>{parent}</Text>
                   <Text style={[styles.th, styles.right, { flexBasis: '12%' }]}>{fmt(groupSubtotal)}</Text>
                 </View>
 
-                {/* Filas de ítems */}
                 {group.map(it => {
                   const line = lines[it.id]!
                   const qty = Number(line.quantity || 0)
@@ -119,6 +121,7 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
           })}
         </View>
 
+        {/* Totals */}
         <View style={styles.totals}>
           {includeMaterials && (
             <View style={styles.row}>
@@ -126,12 +129,10 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
               <Text>{fmt(t.mat)}</Text>
             </View>
           )}
-          {includeMaterials && (
-            <View style={styles.row}>
-              <Text>Mano de Obra</Text>
-              <Text>{fmt(t.mo)}</Text>
-            </View>
-          )}
+          <View style={styles.row}>
+            <Text>Mano de Obra</Text>
+            <Text>{fmt(t.mo)}</Text>
+          </View>
           <View style={styles.row}>
             <Text>Subtotal</Text>
             <Text>{fmt(t.subtotal)}</Text>
@@ -144,6 +145,15 @@ export default function QuoteDoc({ title, items, lines, markupPercent, includeMa
             <Text style={{ fontWeight: 700 }}>Total</Text>
             <Text style={{ fontWeight: 700 }}>{fmt(t.total)}</Text>
           </View>
+        </View>
+
+        {/* Footer */}
+        <View style={styles.footerWrap}>
+          <Text style={styles.small}>
+            Emitido por: {footer.issuer || '-'}
+            {footer.address ? ` | Domicilio: ${footer.address}` : ''}
+            {footer.contact ? ` | Contacto: ${footer.contact}` : ''}
+          </Text>
         </View>
       </Page>
     </Document>

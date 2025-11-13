@@ -28,7 +28,9 @@ export default function SaveDraftModal() {
           createdAt: now,
           updatedAt: now,
           id,
-          draft: state.draft
+          draft: state.draft,
+          pdfHeader: state.pdfHeader,
+          pdfFooter: state.pdfFooter
         })
       })
 
@@ -61,7 +63,14 @@ export default function SaveDraftModal() {
       const res = await fetch('/api/drafts', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: state.id, name: state.name, draft: state.draft, updatedAt: new Date() })
+        body: JSON.stringify({
+          id: state.id,
+          name: state.name,
+          draft: state.draft,
+          updatedAt: new Date(),
+          pdfHeader: state.pdfHeader,
+          pdfFooter: state.pdfFooter
+        })
       })
 
       if (!res.ok) {

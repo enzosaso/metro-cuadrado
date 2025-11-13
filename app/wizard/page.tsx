@@ -41,7 +41,9 @@ export default function WizardEntry() {
         userId: draftDb.userId,
         createdAt: draftDb.createdAt,
         updatedAt: draftDb.updatedAt,
-        draft: draftDb.draft
+        draft: draftDb.draft,
+        pdfHeader: draftDb.pdfHeader,
+        pdfFooter: draftDb.pdfFooter
       } as PersistedBudgetDraft)
     )
     window.dispatchEvent(new Event('wizard-storage-update'))
