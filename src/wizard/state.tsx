@@ -57,11 +57,9 @@ const STORAGE_KEY = 'mc_wizard_v1'
 function withMigration(raw: unknown): WizardState {
   const parsed = (raw as WizardState) ?? initial
 
-  // Fix fechas si vienen serializadas
   const createdAt = typeof parsed.createdAt === 'string' ? new Date(parsed.createdAt) : parsed.createdAt ?? new Date()
   const updatedAt = typeof parsed.updatedAt === 'string' ? new Date(parsed.updatedAt) : parsed.updatedAt ?? new Date()
 
-  // Defaults no destructivos para nuevos campos
   const pdfHeader: PdfHeader = {
     title: parsed.pdfHeader?.title ?? 'Presupuesto de obra',
     date: parsed.pdfHeader?.date ?? todayISO(),
@@ -76,15 +74,31 @@ function withMigration(raw: unknown): WizardState {
     contact: parsed.pdfFooter?.contact ?? ''
   }
 
-  // Draft siempre presente
   const draft = parsed.draft ?? { selectedItems: [], lines: {}, markupPercent: '0.00' }
+
+  const migratedLines: Record<string, LineDraft> = {}
+
+  for (const [id, line] of Object.entries(draft.lines ?? {})) {
+    const l = line as LineDraft
+    const item = l.item
+
+    migratedLines[id] = {
+      item,
+      quantity: l.quantity ?? '',
+      puMaterials: l.puMaterials ?? (item?.pu_materials != null ? String(item.pu_materials) : ''),
+      puLabor: l.puLabor ?? (item?.pu_labor != null ? String(item.pu_labor) : '')
+    }
+  }
 
   return {
     ...initial,
     ...parsed,
     createdAt,
     updatedAt,
-    draft,
+    draft: {
+      ...draft,
+      lines: migratedLines
+    },
     pdfHeader,
     pdfFooter
   }
@@ -100,20 +114,59 @@ function reducer(state: WizardState, action: Action): WizardState {
       const selectedItems = exists
         ? state.draft.selectedItems.filter(i => i.id !== action.item.id)
         : [...state.draft.selectedItems, action.item]
+
       const lines = { ...state.draft.lines }
-      if (!exists && !lines[action.item.id]) lines[action.item.id] = { item: action.item, quantity: '' }
+
+      if (!exists && !lines[action.item.id]) {
+        lines[action.item.id] = {
+          item: action.item,
+          quantity: '',
+          puMaterials: action.item.pu_materials != null ? String(action.item.pu_materials) : '',
+          puLabor: action.item.pu_labor != null ? String(action.item.pu_labor) : ''
+        }
+      }
+
       if (exists) {
         const { [action.item.id]: _removed, ...rest } = lines
-        return { ...state, draft: { ...state.draft, selectedItems: sortByItemCode(selectedItems), lines: rest } }
+        return {
+          ...state,
+          draft: {
+            ...state.draft,
+            selectedItems: sortByItemCode(selectedItems),
+            lines: rest
+          }
+        }
       }
-      return { ...state, draft: { ...state.draft, selectedItems: sortByItemCode(selectedItems), lines } }
+
+      return {
+        ...state,
+        draft: {
+          ...state.draft,
+          selectedItems: sortByItemCode(selectedItems),
+          lines
+        }
+      }
     }
 
     case 'SET_LINE': {
-      const current = state.draft.lines[action.item.id] ?? { item: action.item, quantity: '' }
+      const existing = state.draft.lines[action.item.id]
+
+      const base: LineDraft = existing ?? {
+        item: action.item,
+        quantity: '',
+        puMaterials: action.item.pu_materials != null ? String(action.item.pu_materials) : '',
+        puLabor: action.item.pu_labor != null ? String(action.item.pu_labor) : ''
+      }
+
       return {
         ...state,
-        draft: { ...state.draft, lines: { ...state.draft.lines, [action.item.id]: { ...current, ...action.patch } } }
+        draft: {
+          ...state.draft,
+          lines: {
+            ...state.draft.lines,
+            [action.item.id]: { ...base, ...action.patch }
+          }
+        }
       }
     }
 

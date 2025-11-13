@@ -17,6 +17,8 @@ export interface LineDraft {
   quantity: string // cantidad en texto (p. ej. "12.5")
   puMaterialsOverride?: string // override manual opcional
   puLaborOverride?: string // override manual opcional
+  puMaterials?: string
+  puLabor?: string
 }
 
 export interface BudgetDraft {

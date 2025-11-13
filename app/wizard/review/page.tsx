@@ -5,10 +5,21 @@ import { useWizard } from '@/wizard/state'
 import Button from '@/components/ui/button'
 import { getParentCode, getParentsAndChild } from '@/lib/wizard-helpers'
 import { useItems } from '@/hooks/useItems'
-import type { PdfHeader } from '@/types'
+import type { PdfHeader, Item, LineDraft } from '@/types'
 import SaveDraftModal from '@/components/SaveDraftModal'
 
 const TITLE_OPTIONS = ['Presupuesto de obra', 'Remodelación', 'Mantenimiento'] as const
+
+const D = (v: string | number | undefined) => Number(v ?? 0) || 0
+
+function getUnitPrices(item: Item, line: LineDraft) {
+  const puMaterials =
+    line.puMaterials !== undefined && line.puMaterials !== '' ? D(line.puMaterials) : D(item.pu_materials)
+
+  const puLabor = line.puLabor !== undefined && line.puLabor !== '' ? D(line.puLabor) : D(item.pu_labor)
+
+  return { puMaterials, puLabor }
+}
 
 export default function ReviewStep() {
   const { state, dispatch } = useWizard()
@@ -22,7 +33,6 @@ export default function ReviewStep() {
   const header = state.pdfHeader
   const footer = state.pdfFooter
 
-  // Normalize title if legacy value is present
   const safeTitulo = TITLE_OPTIONS.includes(header.title as (typeof TITLE_OPTIONS)[number])
     ? header.title
     : TITLE_OPTIONS[0]
@@ -37,7 +47,6 @@ export default function ReviewStep() {
 
   const { parents } = useMemo(() => getParentsAndChild(dbItems), [dbItems])
 
-  // Groups for mobile rendering
   const groups = useMemo(() => {
     const map: Record<string, typeof items> = {}
     for (const it of items) {
@@ -184,8 +193,9 @@ export default function ReviewStep() {
         {Object.entries(groups).map(([parent, group]) => {
           const groupSubtotal = group.reduce((acc, it) => {
             const line = lines[it.id]!
-            const qty = Number(line.quantity || 0)
-            const sub = includeMaterials ? lineSubtotal(it, line) : qty * (it.pu_labor ?? 0)
+            const qty = D(line.quantity)
+            const { puLabor } = getUnitPrices(it as Item, line as LineDraft)
+            const sub = includeMaterials ? lineSubtotal(it as Item, line as LineDraft) : qty * puLabor
             return acc + sub
           }, 0)
           return (
@@ -198,11 +208,17 @@ export default function ReviewStep() {
               </header>
               <div className='p-3 space-y-3'>
                 {group.map(it => {
-                  const line = lines[it.id]!
-                  const qty = Number(line.quantity || 0)
-                  const subMat = includeMaterials ? qty * (it.pu_materials ?? 0) : 0
-                  const subLab = qty * (it.pu_labor ?? 0)
-                  const sub = includeMaterials ? lineSubtotal(it, line) : subLab
+                  const line = lines[it.id] as LineDraft
+                  const qty = D(line.quantity)
+                  const { puMaterials, puLabor } = getUnitPrices(it as Item, line)
+
+                  const subMat = includeMaterials ? qty * puMaterials : 0
+                  const subLab = qty * puLabor
+                  const sub = includeMaterials ? lineSubtotal(it as Item, line) : subLab
+
+                  const puMatValue = line.puMaterials ?? (it.pu_materials != null ? String(it.pu_materials) : '')
+                  const puLabValue = line.puLabor ?? (it.pu_labor != null ? String(it.pu_labor) : '')
+
                   return (
                     <div key={it.id} className='rounded-xl border p-3'>
                       <div className='text-sm font-medium'>{it.chapter}</div>
@@ -212,17 +228,43 @@ export default function ReviewStep() {
                       <div className={`mt-2 grid gap-2 text-xs ${includeMaterials ? 'grid-cols-2' : 'grid-cols-1'}`}>
                         {includeMaterials && (
                           <>
-                            <div className='rounded bg-muted px-2 py-1'>
-                              PU Mat: <strong>{it.pu_materials ? fmt(it.pu_materials) : '-'}</strong>
-                            </div>
+                            <label className='rounded bg-muted px-2 py-1 flex items-center justify-between gap-2'>
+                              <span>PU Mat:</span>
+                              <input
+                                type='number'
+                                step='1'
+                                className='w-24 bg-transparent text-right outline-none'
+                                value={puMatValue}
+                                onChange={e =>
+                                  dispatch({
+                                    type: 'SET_LINE',
+                                    item: it,
+                                    patch: { puMaterials: e.target.value }
+                                  })
+                                }
+                              />
+                            </label>
                             <div className='rounded px-2 py-1 border'>
                               Subtot. Mat: <strong>{fmt(subMat)}</strong>
                             </div>
                           </>
                         )}
-                        <div className='rounded bg-muted px-2 py-1'>
-                          PU MO: <strong>{it.pu_labor ? fmt(it.pu_labor) : '-'}</strong>
-                        </div>
+                        <label className='rounded bg-muted px-2 py-1 flex items-center justify-between gap-2'>
+                          <span>PU MO:</span>
+                          <input
+                            type='number'
+                            step='1'
+                            className='w-24 bg-transparent text-right outline-none'
+                            value={puLabValue}
+                            onChange={e =>
+                              dispatch({
+                                type: 'SET_LINE',
+                                item: it,
+                                patch: { puLabor: e.target.value }
+                              })
+                            }
+                          />
+                        </label>
                         <div className='rounded px-2 py-1 border'>
                           Subtot. MO: <strong>{fmt(subLab)}</strong>
                         </div>
@@ -248,18 +290,30 @@ export default function ReviewStep() {
               <th className='py-2 px-3'>Ítem</th>
               <th className='py-2 px-3'>Cant.</th>
               <th className='py-2 px-3'>Unidad</th>
-              {includeMaterials && <th className='py-2 px-3 text-right'>Subtot. Materiales</th>}
+              {includeMaterials && (
+                <>
+                  <th className='py-2 px-3 text-right'>PU Mat</th>
+                  <th className='py-2 px-3 text-right'>Subtot. Materiales</th>
+                </>
+              )}
+              <th className='py-2 px-3 text-right'>PU MO</th>
               <th className='py-2 px-3 text-right'>Subtot. Mano de Obra</th>
               <th className='py-2 px-3 text-right'>Subtotal</th>
             </tr>
           </thead>
           <tbody>
             {items.map((it, index) => {
-              const line = lines[it.id]!
-              const qty = Number(line.quantity || 0)
-              const subMat = includeMaterials ? qty * (it.pu_materials ?? 0) : 0
-              const subLab = qty * (it.pu_labor ?? 0)
-              const sub = includeMaterials ? lineSubtotal(it, line) : subLab
+              const line = lines[it.id] as LineDraft
+              const qty = D(line.quantity)
+              const { puMaterials, puLabor } = getUnitPrices(it as Item, line)
+
+              const subMat = includeMaterials ? qty * puMaterials : 0
+              const subLab = qty * puLabor
+              const sub = includeMaterials ? lineSubtotal(it as Item, line) : subLab
+
+              const puMatValue = line.puMaterials ?? (it.pu_materials != null ? String(it.pu_materials) : '')
+              const puLabValue = line.puLabor ?? (it.pu_labor != null ? String(it.pu_labor) : '')
+
               return (
                 <tr key={it.id} className={index === items.length - 1 ? '' : 'border-b'}>
                   <td className='py-2 px-3'>
@@ -271,7 +325,41 @@ export default function ReviewStep() {
                   </td>
                   <td className='py-2 px-3'>{line.quantity || '0'}</td>
                   <td className='py-2 px-3'>{it.unit}</td>
-                  {includeMaterials && <td className='py-2 px-3 text-right'>{fmt(subMat)}</td>}
+                  {includeMaterials && (
+                    <>
+                      <td className='py-2 px-3 text-right'>
+                        <input
+                          type='number'
+                          step='1'
+                          className='w-24 bg-transparent text-right outline-none border rounded px-1 py-0.5'
+                          value={puMatValue}
+                          onChange={e =>
+                            dispatch({
+                              type: 'SET_LINE',
+                              item: it,
+                              patch: { puMaterials: e.target.value }
+                            })
+                          }
+                        />
+                      </td>
+                      <td className='py-2 px-3 text-right'>{fmt(subMat)}</td>
+                    </>
+                  )}
+                  <td className='py-2 px-3 text-right'>
+                    <input
+                      type='number'
+                      step='1'
+                      className='w-24 bg-transparent text-right outline-none border rounded px-1 py-0.5'
+                      value={puLabValue}
+                      onChange={e =>
+                        dispatch({
+                          type: 'SET_LINE',
+                          item: it,
+                          patch: { puLabor: e.target.value }
+                        })
+                      }
+                    />
+                  </td>
                   <td className='py-2 px-3 text-right'>{fmt(subLab)}</td>
                   <td className='py-2 px-3 text-right'>{fmt(sub)}</td>
                 </tr>
