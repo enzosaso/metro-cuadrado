@@ -37,7 +37,7 @@ const initial: WizardState = {
   updatedAt: new Date(),
   id: '',
   userId: '',
-  draft: { selectedItems: [], lines: {}, markupPercent: '0.10' },
+  draft: { selectedItems: [], lines: {}, markupPercent: '0.00' },
   pdfHeader: {
     title: 'Presupuesto de obra',
     date: todayISO(),
@@ -77,7 +77,7 @@ function withMigration(raw: unknown): WizardState {
   }
 
   // Draft siempre presente
-  const draft = parsed.draft ?? { selectedItems: [], lines: {}, markupPercent: '0.10' }
+  const draft = parsed.draft ?? { selectedItems: [], lines: {}, markupPercent: '0.00' }
 
   return {
     ...initial,
