@@ -59,12 +59,9 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
           <Text style={styles.h1}>{header.title}</Text>
           <Text style={styles.meta}>
             Fecha: {header.date}
-            {'\n'}
-            Cliente: {header.client || '-'}
-            {'\n'}
-            Dirección de la obra: {header.address || '-'}
-            {'\n'}
-            Tiempo estimado de obra: {header.timeEstimate || '-'}
+            {header.client && `\n Cliente: ${header.client}`}
+            {header.address && `\n Dirección de la obra: ${header.address}`}
+            {header.timeEstimate && `\n Tiempo estimado de obra: ${header.timeEstimate}`}
           </Text>
         </View>
 
@@ -150,9 +147,9 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
         {/* Footer */}
         <View style={styles.footerWrap}>
           <Text style={styles.small}>
-            Emitido por: {footer.issuer || '-'}
-            {footer.address ? ` | Domicilio: ${footer.address}` : ''}
-            {footer.contact ? ` | Contacto: ${footer.contact}` : ''}
+            {footer.issuer && `Emitido por: ${footer.issuer}`}
+            {footer.address && ` | Domicilio: ${footer.address}`}
+            {footer.contact && ` | Contacto: ${footer.contact}`}
           </Text>
         </View>
       </Page>

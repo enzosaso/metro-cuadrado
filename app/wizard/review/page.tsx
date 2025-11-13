@@ -27,12 +27,6 @@ export default function ReviewStep() {
     ? header.title
     : TITLE_OPTIONS[0]
 
-  const requiredOk =
-    header.client.trim().length > 0 &&
-    header.address.trim().length > 0 &&
-    header.date.trim().length > 0 &&
-    footer.issuer.trim().length > 0
-
   const rawTotals = totals(items, lines, state.draft.markupPercent)
   const mo = rawTotals.mo
   const mat = includeMaterials ? rawTotals.mat : 0
@@ -338,16 +332,11 @@ export default function ReviewStep() {
               <Button href='/wizard/edit' styleType='tertiary'>
                 Editar
               </Button>
-              <Button onClick={onPrint} disabled={loading || !requiredOk} loading={loading} styleType='secondary'>
+              <Button onClick={onPrint} disabled={loading} loading={loading} styleType='secondary'>
                 PDF
               </Button>
             </div>
           </div>
-          {!requiredOk && (
-            <div className='mt-2 text-xs text-red-600'>
-              Completá Título, Fecha, Cliente, Dirección de la obra y Emitido por para generar el PDF
-            </div>
-          )}
         </div>
       </div>
 
@@ -360,7 +349,7 @@ export default function ReviewStep() {
         <Button href='/wizard/edit' styleType='tertiary'>
           Editar
         </Button>
-        <Button onClick={onPrint} disabled={loading || !requiredOk} loading={loading} styleType='secondary'>
+        <Button onClick={onPrint} disabled={loading} loading={loading} styleType='secondary'>
           Imprimir / PDF
         </Button>
       </div>
