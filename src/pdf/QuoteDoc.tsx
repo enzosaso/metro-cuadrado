@@ -39,6 +39,23 @@ export interface QuoteDocProps {
   footer: PdfFooter
 }
 
+const numOr = (val: unknown, fallback: number) => {
+  if (val === undefined || val === '') return fallback
+  const n = Number(val)
+  return Number.isFinite(n) ? n : fallback
+}
+
+const qtyOf = (line: LineDraft) => {
+  const n = Number(line.quantity ?? 0)
+  return Number.isFinite(n) ? n : 0
+}
+
+const getUnitPrices = (item: Item, line: LineDraft) => {
+  const puMaterials = numOr(line.puMaterials, item.pu_materials ?? 0)
+  const puLabor = numOr(line.puLabor, item.pu_labor ?? 0)
+  return { puMaterials, puLabor }
+}
+
 export default function QuoteDoc({ items, lines, markupPercent, includeMaterials, header, footer }: QuoteDocProps) {
   const chosen = items.filter(i => lines[i.id])
   const groups = groupByParent(chosen, lines)
@@ -81,8 +98,9 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
           {Object.entries(groups).map(([parent, group]) => {
             const groupSubtotal = group.reduce((acc, it) => {
               const line = lines[it.id]!
-              const qty = Number(line.quantity || 0)
-              const sub = includeMaterials ? lineSubtotal(it, line) : qty * (it.pu_labor ?? 0)
+              const qty = qtyOf(line)
+              const { puLabor } = getUnitPrices(it, line)
+              const sub = includeMaterials ? lineSubtotal(it, line) : qty * puLabor
               return acc + sub
             }, 0)
 
@@ -95,10 +113,12 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
 
                 {group.map(it => {
                   const line = lines[it.id]!
-                  const qty = Number(line.quantity || 0)
-                  const subMat = qty * (it.pu_materials ?? 0)
-                  const subLab = qty * (it.pu_labor ?? 0)
-                  const sub = includeMaterials && subMat > 0 ? lineSubtotal(it, line) : subLab
+                  const qty = qtyOf(line)
+                  const { puMaterials, puLabor } = getUnitPrices(it, line)
+
+                  const subMat = includeMaterials ? qty * puMaterials : 0
+                  const subLab = qty * puLabor
+                  const sub = includeMaterials ? lineSubtotal(it, line) : subLab
 
                   return (
                     <View key={it.id} style={styles.tr}>
