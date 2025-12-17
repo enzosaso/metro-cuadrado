@@ -14,18 +14,61 @@ const groupByParent = (items: Item[], lines: Record<string, LineDraft>) => {
   return groups
 }
 
+const COL_WITH_MAT = { item: 36, qty: 10, unit: 10, mat: 16, labor: 16, total: 12 } as const
+const COL_NO_MAT = { item: 44, qty: 10, unit: 10, labor: 24, total: 12 } as const
+
+const pct = (n: number) => `${n}%`
+
+const HEADER_BG = '#f7f7f7'
+
 const styles = StyleSheet.create({
   page: { padding: 32, fontSize: 10, fontFamily: 'Helvetica' },
-  header: { marginBottom: 12 },
+  header: { marginBottom: 2 },
   h1: { fontSize: 18, fontWeight: 700 },
-  meta: { color: '#444', marginTop: 4, lineHeight: 1.4 },
+
+  // ✅ Cada línea del header como fila separada (sin \n)
+  metaRow: { flexDirection: 'row', gap: 6, marginTop: 4 },
+  metaLabel: { color: '#444', fontWeight: 700 },
+  metaValue: { color: '#444' },
+
   table: { marginTop: 12, borderWidth: 1, borderColor: '#ddd' },
-  tr: { flexDirection: 'row', borderBottomWidth: 1, borderColor: '#eee' },
-  th: { padding: 6, fontWeight: 700, backgroundColor: '#f7f7f7', flexGrow: 1 },
-  td: { padding: 6, flexGrow: 1 },
-  right: { textAlign: 'right' },
+
+  tr: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+    alignItems: 'center',
+    minHeight: 20
+  },
+
+  trHead: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderColor: '#eee',
+    alignItems: 'stretch',
+    minHeight: 44
+  },
+
+  cell: { flexGrow: 0, flexShrink: 0 },
+
+  td: { padding: 4 },
+
+  thCell: {
+    backgroundColor: HEADER_BG,
+    paddingHorizontal: 6,
+    justifyContent: 'flex-end'
+  },
+  thText: { fontWeight: 700, lineHeight: 0.9 },
+  thLeft: { textAlign: 'left' },
+  thCenter: { textAlign: 'center' },
+  thRight: { textAlign: 'right' },
+
+  itemText: { lineHeight: 1 },
+  num: { textAlign: 'right' },
+
   totals: { marginTop: 12, gap: 4 },
   row: { flexDirection: 'row', justifyContent: 'space-between' },
+
   footerWrap: { marginTop: 18, paddingTop: 10, borderTopWidth: 1, borderTopColor: '#ddd' },
   small: { fontSize: 9, color: '#555' }
 })
@@ -68,31 +111,76 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
   const total = subtotal + markup
   const t = { ...rawTotals, mat, subtotal, total }
 
+  const showMaterialsCol = includeMaterials && t.mat > 0
+  const activeCols = showMaterialsCol ? COL_WITH_MAT : COL_NO_MAT
+  const groupLabelWidth = pct(100 - activeCols.total)
+
   return (
     <Document>
       <Page size='A4' style={styles.page}>
         {/* Header */}
         <View style={styles.header}>
           <Text style={styles.h1}>{header.title}</Text>
-          <Text style={styles.meta}>
-            Fecha: {header.date}
-            {header.client && `\n Cliente: ${header.client}`}
-            {header.address && `\n Dirección de la obra: ${header.address}`}
-            {header.timeEstimate && `\n Tiempo estimado de obra: ${header.timeEstimate}`}
-          </Text>
+
+          {/* ✅ Mantiene TODAS las líneas con el mismo formato */}
+          <View style={styles.metaRow}>
+            <Text style={styles.metaLabel}>Fecha:</Text>
+            <Text style={styles.metaValue}>{header.date}</Text>
+          </View>
+
+          {header.client && (
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Cliente:</Text>
+              <Text style={styles.metaValue}>{header.client}</Text>
+            </View>
+          )}
+
+          {header.address && (
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Dirección de la obra:</Text>
+              <Text style={styles.metaValue}>{header.address}</Text>
+            </View>
+          )}
+
+          {header.timeEstimate && (
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Tiempo estimado de obra:</Text>
+              <Text style={styles.metaValue}>{header.timeEstimate}</Text>
+            </View>
+          )}
         </View>
 
         {/* Table */}
         <View style={styles.table}>
-          <View style={styles.tr}>
-            <Text style={[styles.th, { flexBasis: '36%' }]}>Ítem</Text>
-            <Text style={[styles.th, { flexBasis: '10%' }]}>Cant.</Text>
-            <Text style={[styles.th, { flexBasis: '10%' }]}>Unidad</Text>
-            {includeMaterials && mat > 0 && (
-              <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Materiales</Text>
+          {/* Header row */}
+          <View style={styles.trHead} wrap={false}>
+            <View style={[styles.thCell, styles.cell, { width: pct(activeCols.item) }]}>
+              <Text style={[styles.thText, styles.thLeft]}>Ítem</Text>
+            </View>
+
+            <View style={[styles.thCell, styles.cell, { width: pct(activeCols.qty) }]}>
+              <Text style={[styles.thText, styles.thCenter]}>Cant.</Text>
+            </View>
+
+            <View style={[styles.thCell, styles.cell, { width: pct(activeCols.unit) }]}>
+              <Text style={[styles.thText, styles.thCenter]}>Unidad</Text>
+            </View>
+
+            {showMaterialsCol && (
+              <View style={[styles.thCell, styles.cell, { width: pct(COL_WITH_MAT.mat) }]}>
+                <Text style={[styles.thText, styles.thRight]}>{'Sub.\nMateriales'}</Text>
+              </View>
             )}
-            <Text style={[styles.th, { flexBasis: '16%' }, styles.right]}>Sub. Mano de Obra</Text>
-            <Text style={[styles.th, { flexBasis: '12%' }, styles.right]}>Subtotal</Text>
+
+            <View style={[styles.thCell, styles.cell, { width: pct(activeCols.labor) }]}>
+              <Text style={[styles.thText, styles.thRight]}>
+                {showMaterialsCol ? 'Sub.\nMano de Obra' : 'Sub. Mano de Obra'}
+              </Text>
+            </View>
+
+            <View style={[styles.thCell, styles.cell, { width: pct(activeCols.total) }]}>
+              <Text style={[styles.thText, styles.thRight]}>Subtotal</Text>
+            </View>
           </View>
 
           {Object.entries(groups).map(([parent, group]) => {
@@ -106,9 +194,11 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
 
             return (
               <React.Fragment key={parent}>
-                <View style={[styles.tr, { backgroundColor: '#fafafa' }]}>
-                  <Text style={[styles.th, { flexBasis: '88%' }]}>{parent}</Text>
-                  <Text style={[styles.th, styles.right, { flexBasis: '12%' }]}>{fmt(groupSubtotal)}</Text>
+                <View style={[styles.tr, { backgroundColor: '#fafafa' }]} wrap={false}>
+                  <Text style={[styles.td, styles.cell, { width: groupLabelWidth, fontWeight: 700 }]}>{parent}</Text>
+                  <Text style={[styles.td, styles.cell, styles.num, { width: pct(activeCols.total), fontWeight: 700 }]}>
+                    {fmt(groupSubtotal)}
+                  </Text>
                 </View>
 
                 {group.map(it => {
@@ -121,17 +211,32 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
                   const sub = includeMaterials ? lineSubtotal(it, line) : subLab
 
                   return (
-                    <View key={it.id} style={styles.tr}>
-                      <Text style={[styles.td, { flexBasis: '36%' }]}>{it.chapter}</Text>
-                      <Text style={[styles.td, { flexBasis: '10%' }]}>{line.quantity || '0'}</Text>
-                      <Text style={[styles.td, { flexBasis: '10%' }]}>{it.unit}</Text>
-                      {includeMaterials && subMat > 0 && (
-                        <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>
-                          {subMat ? fmt(subMat) : '-'}
+                    <View key={it.id} style={styles.tr} wrap={false}>
+                      <Text style={[styles.td, styles.cell, { width: pct(activeCols.item) }]}>
+                        <Text style={styles.itemText}>{it.chapter}</Text>
+                      </Text>
+
+                      <Text style={[styles.td, styles.cell, { width: pct(activeCols.qty), textAlign: 'center' }]}>
+                        {line.quantity || '0'}
+                      </Text>
+
+                      <Text style={[styles.td, styles.cell, { width: pct(activeCols.unit), textAlign: 'center' }]}>
+                        {it.unit}
+                      </Text>
+
+                      {showMaterialsCol && (
+                        <Text style={[styles.td, styles.cell, styles.num, { width: pct(COL_WITH_MAT.mat) }]}>
+                          {subMat > 0 ? fmt(subMat) : '-'}
                         </Text>
                       )}
-                      <Text style={[styles.td, styles.right, { flexBasis: '16%' }]}>{subLab ? fmt(subLab) : '-'}</Text>
-                      <Text style={[styles.td, styles.right, { flexBasis: '12%' }]}>{fmt(sub)}</Text>
+
+                      <Text style={[styles.td, styles.cell, styles.num, { width: pct(activeCols.labor) }]}>
+                        {subLab > 0 ? fmt(subLab) : '-'}
+                      </Text>
+
+                      <Text style={[styles.td, styles.cell, styles.num, { width: pct(activeCols.total) }]}>
+                        {fmt(sub)}
+                      </Text>
                     </View>
                   )
                 })}
@@ -141,29 +246,33 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
         </View>
 
         {/* Totals */}
-        <View style={styles.totals}>
-          {includeMaterials && t.mat > 0 && (
+        <View style={styles.totals} wrap={false}>
+          {showMaterialsCol && (
             <View style={styles.row}>
               <Text>Materiales</Text>
               <Text>{fmt(t.mat)}</Text>
             </View>
           )}
+
           <View style={styles.row}>
             <Text>Mano de Obra</Text>
             <Text>{fmt(t.mo)}</Text>
           </View>
+
           {t.subtotal !== t.total && (
             <View style={styles.row}>
               <Text>Subtotal</Text>
               <Text>{fmt(t.subtotal)}</Text>
             </View>
           )}
+
           {t.markupPercent > 0 && (
             <View style={styles.row}>
               <Text>Ajuste de obra</Text>
               <Text>{(t.markupPercent * 100).toFixed(0)}%</Text>
             </View>
           )}
+
           <View style={[styles.row, { marginTop: 6 }]}>
             <Text style={{ fontWeight: 700 }}>Total</Text>
             <Text style={{ fontWeight: 700 }}>{fmt(t.total)}</Text>
@@ -171,7 +280,7 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
         </View>
 
         {/* Footer */}
-        <View style={styles.footerWrap}>
+        <View style={styles.footerWrap} wrap={false}>
           <Text style={styles.small}>
             {footer.issuer && `Emitido por: ${footer.issuer}`}
             {footer.address && ` | Domicilio: ${footer.address}`}
