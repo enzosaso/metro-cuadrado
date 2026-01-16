@@ -184,6 +184,20 @@ export default function ReviewStep() {
                 className='mt-1 w-full rounded-md border px-2 py-1'
               />
             </label>
+
+            <label className='text-sm'>
+              <span className='block text-xs text-muted-foreground'>Nota (opcional)</span>
+              <input
+                type='text'
+                placeholder='Ej. Presupuesto válido por 30 días'
+                value={footer.customLabel || ''}
+                onChange={e => dispatch({ type: 'PATCH_PDF_FOOTER', patch: { customLabel: e.target.value } })}
+                className='mt-1 w-full rounded-md border px-2 py-1 text-sm'
+              />
+              <p className='mt-1 text-xs text-muted-foreground'>
+                Este texto aparecerá como nota al final del presupuesto
+              </p>
+            </label>
           </div>
         </div>
       </section>

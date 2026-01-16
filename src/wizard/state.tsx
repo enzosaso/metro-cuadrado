@@ -48,7 +48,8 @@ const initial: WizardState = {
   pdfFooter: {
     issuer: '',
     address: '',
-    contact: ''
+    contact: '',
+    customLabel: ''
   }
 }
 
@@ -71,7 +72,8 @@ function withMigration(raw: unknown): WizardState {
   const pdfFooter: PdfFooter = {
     issuer: parsed.pdfFooter?.issuer ?? '',
     address: parsed.pdfFooter?.address ?? '',
-    contact: parsed.pdfFooter?.contact ?? ''
+    contact: parsed.pdfFooter?.contact ?? '',
+    customLabel: parsed.pdfFooter?.customLabel ?? ''
   }
 
   const draft = parsed.draft ?? { selectedItems: [], lines: {}, markupPercent: '0.00' }

@@ -1,24 +1,10 @@
 import { NextRequest } from 'next/server'
 import { renderToBuffer } from '@react-pdf/renderer'
 import QuoteDoc from '@/pdf/QuoteDoc'
-import type { LineDraft } from '@/types'
+import type { LineDraft, PdfFooter, PdfHeader } from '@/types'
 
 export const runtime = 'nodejs'
 export const dynamic = 'force-dynamic'
-
-type PdfHeader = {
-  title?: 'Presupuesto de obra' | 'Remodelación' | 'Mantenimiento'
-  date?: string // yyyy-mm-dd
-  client?: string
-  address?: string
-  timeEstimate?: string
-}
-
-type PdfFooter = {
-  issuer?: string
-  address?: string
-  contact?: string
-}
 
 const TITLE_OPTIONS = ['Presupuesto de obra', 'Remodelación', 'Mantenimiento'] as const
 
@@ -71,7 +57,8 @@ export async function POST(req: NextRequest) {
     const safeFooter = {
       issuer: footer?.issuer ?? '',
       address: footer?.address || '',
-      contact: footer?.contact || ''
+      contact: footer?.contact || '',
+      customLabel: footer?.customLabel || ''
     }
 
     const safeIncludeMaterials = includeMaterials ?? true

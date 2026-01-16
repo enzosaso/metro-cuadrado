@@ -281,6 +281,21 @@ export default function QuoteDoc({ items, lines, markupPercent, includeMaterials
 
         {/* Footer */}
         <View style={styles.footerWrap} wrap={false}>
+          {footer.customLabel && (
+            <View
+              style={{
+                marginBottom: 10,
+                padding: 8,
+                borderTop: '1px solid #eee',
+                borderBottom: '1px solid #eee',
+                backgroundColor: '#fafafa'
+              }}
+            >
+              <Text style={{ color: '#666', fontSize: 9, textAlign: 'center', fontStyle: 'italic' }}>
+                {footer.customLabel}
+              </Text>
+            </View>
+          )}
           <Text style={styles.small}>
             {footer.issuer && `Emitido por: ${footer.issuer}`}
             {footer.address && ` | Domicilio: ${footer.address}`}

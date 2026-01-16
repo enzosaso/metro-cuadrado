@@ -39,6 +39,7 @@ export interface PdfFooter {
   issuer: string
   address?: string
   contact?: string
+  customLabel?: string
 }
 
 export interface PersistedBudgetDraft {
